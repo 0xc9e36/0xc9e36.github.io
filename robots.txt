@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: http://nameistw.github.io/sitemap.xml
