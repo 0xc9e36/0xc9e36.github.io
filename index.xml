@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>W</title>
+    <title> 记录开发的套路</title>
     <link>http://nameistw.github.io/</link>
-    <description>Recent content on W</description>
+    <description>Recent content on  记录开发的套路</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <lastBuildDate>Tue, 29 Oct 2019 10:01:37 +0800</lastBuildDate>
@@ -12,13 +12,21 @@
     
     
     <item>
-      <title>About</title>
+      <title>简介</title>
       <link>http://nameistw.github.io/about/</link>
       <pubDate>Tue, 29 Oct 2019 10:01:37 +0800</pubDate>
       
       <guid>http://nameistw.github.io/about/</guid>
       
-        <description>&lt;p&gt;hello world&lt;/p&gt;
+        <description>&lt;p&gt;API Caller, 18年本科毕业, 漂在深圳, 目前专注 golang 后台开发&lt;/p&gt;
+
+&lt;p&gt;工作经历:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;2019.03 ~ 至今 : 客路旅行, Go 开发, 负责铁路火车票业务&lt;br /&gt;&lt;/li&gt;
+&lt;li&gt;2018.03 ~ 2018.12 : 美团点评, Java 开发, 负责营销业务&lt;/li&gt;
+&lt;li&gt;2017.07 ~ 2017.09: 贝贝网(实习), PHP 开发, 负责电商相关业务&lt;/li&gt;
+&lt;/ul&gt;
 </description>
       
     </item>

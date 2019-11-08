@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://nameistw.github.io/</loc>
+    <lastmod>2019-10-29T10:01:37+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://nameistw.github.io/about/</loc>
     <lastmod>2019-10-29T10:01:37+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -9,8 +16,8 @@
   </url>
   
   <url>
-    <loc>http://nameistw.github.io/</loc>
-    <lastmod>2019-10-29T10:01:37+08:00</lastmod>
+    <loc>http://nameistw.github.io/categories/%E5%85%B6%E4%BB%96/</loc>
+    <lastmod>2019-10-28T08:53:58+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
@@ -24,13 +31,6 @@
   
   <url>
     <loc>http://nameistw.github.io/post/hello-world/</loc>
-    <lastmod>2019-10-28T08:53:58+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://nameistw.github.io/categories/other/</loc>
     <lastmod>2019-10-28T08:53:58+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
