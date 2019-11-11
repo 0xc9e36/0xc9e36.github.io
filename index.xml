@@ -6,10 +6,21 @@
     <description>Recent content on  记录开发的套路</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
-    <lastBuildDate>Tue, 29 Oct 2019 10:01:37 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 11 Nov 2019 23:58:18 +0800</lastBuildDate>
     
         <atom:link href="http://nameistw.github.io/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Posts</title>
+      <link>http://nameistw.github.io/post/</link>
+      <pubDate>Mon, 11 Nov 2019 23:58:18 +0800</pubDate>
+      
+      <guid>http://nameistw.github.io/post/</guid>
+      
+        <description></description>
+      
+    </item>
     
     <item>
       <title>简介</title>
@@ -28,17 +39,6 @@
 &lt;li&gt;2017.07 ~ 2017.09: 贝贝网(实习), PHP 开发, 负责电商相关业务&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-      
-    </item>
-    
-    <item>
-      <title>Posts</title>
-      <link>http://nameistw.github.io/post/</link>
-      <pubDate>Mon, 28 Oct 2019 08:53:58 +0800</pubDate>
-      
-      <guid>http://nameistw.github.io/post/</guid>
-      
-        <description></description>
       
     </item>
     

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>Categories -  记录开发的套路</title>
+  <title>channel 实现原理 -  记录开发的套路</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -23,6 +23,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="wei.tan" />
+  <meta name="description" content="数据结构 channel 可以用于协程之间通信, 在标准库中结构定义如下: type hchan struct { qcount uint //队列当前元素数量 dataqsiz uint //队列容量 buf unsafe.Pointer //指向环形数组的指针 elemsize uint16 //每" />
+
 
 
 
@@ -32,8 +34,8 @@
 <meta name="generator" content="Hugo 0.59.0" />
 
 
-<link rel="canonical" href="http://nameistw.github.io/categories/" />
-<link href="/categories/index.xml" rel="alternate" type="application/rss+xml" title=" 记录开发的套路" />
+<link rel="canonical" href="http://nameistw.github.io/post/channel/" />
+
 
 
 
@@ -56,18 +58,26 @@
 
 
 
-<meta property="og:title" content="Categories" />
-<meta property="og:description" content="" />
-<meta property="og:type" content="website" />
-<meta property="og:url" content="http://nameistw.github.io/categories/" />
+<meta property="og:title" content="channel 实现原理" />
+<meta property="og:description" content="数据结构 channel 可以用于协程之间通信, 在标准库中结构定义如下: type hchan struct { qcount uint //队列当前元素数量 dataqsiz uint //队列容量 buf unsafe.Pointer //指向环形数组的指针 elemsize uint16 //每" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://nameistw.github.io/post/channel/" />
+<meta property="article:published_time" content="2019-11-11T23:58:18+08:00" />
+<meta property="article:modified_time" content="2019-11-11T23:58:18+08:00" />
+<meta itemprop="name" content="channel 实现原理">
+<meta itemprop="description" content="数据结构 channel 可以用于协程之间通信, 在标准库中结构定义如下: type hchan struct { qcount uint //队列当前元素数量 dataqsiz uint //队列容量 buf unsafe.Pointer //指向环形数组的指针 elemsize uint16 //每">
 
-<meta property="og:updated_time" content="2019-11-11T23:58:18+08:00" />
-<meta itemprop="name" content="Categories">
-<meta itemprop="description" content="">
 
+<meta itemprop="datePublished" content="2019-11-11T23:58:18&#43;08:00" />
+<meta itemprop="dateModified" content="2019-11-11T23:58:18&#43;08:00" />
+<meta itemprop="wordCount" content="645">
+
+
+
+<meta itemprop="keywords" content="" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="Categories"/>
-<meta name="twitter:description" content=""/>
+<meta name="twitter:title" content="channel 实现原理"/>
+<meta name="twitter:description" content="数据结构 channel 可以用于协程之间通信, 在标准库中结构定义如下: type hchan struct { qcount uint //队列当前元素数量 dataqsiz uint //队列容量 buf unsafe.Pointer //指向环形数组的指针 elemsize uint16 //每"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -230,7 +240,7 @@
 
       </li>
     
-        <li class="menu-item active">
+        <li class="menu-item">
         
           
           
@@ -266,79 +276,181 @@
     <main id="main" class="main bg-llight">
       <div class="content-wrapper">
         <div id="content" class="content container">
-          
-  
-  
-  
-  
-
-  
-  
+          <article class="post bg-white">
     
-    
-    
-    
-      <section id="archive" class="archive">
-        <div class="archive-title">
-        </div>
-          <div class="collection-title">
-            <h2 class="archive-year">
-              <a href="http://nameistw.github.io/categories/go/">
-                Category: go
-              </a>
-            </h2>
+    <header class="post-header">
+      <h1 class="post-title">channel 实现原理</h1>
+      
+      <div class="post-meta">
+        <time datetime="2019-11-11" class="post-time">
+          2019-11-11
+        </time>
+        <div class="post-category">
+            <a href="http://nameistw.github.io/categories/go/"> go </a>
+            
           </div>
+        
 
-          
-            <div class="archive-post">
-              <time datetime="2019-11-11" class="archive-post-time">
-                2019-11-11
-              </time>
-              <span class="archive-post-title">
-                <a href="/post/channel/" class="archive-post-link">
-                  channel 实现原理
-                </a>
-              </span>
-            </div>
-          
-          
-      </section>
-    
-    
-    
-    
-    
-      <section id="archive" class="archive">
-        <div class="archive-title">
-        </div>
-          <div class="collection-title">
-            <h2 class="archive-year">
-              <a href="http://nameistw.github.io/categories/%E5%85%B6%E4%BB%96/">
-                Category: 其他
-              </a>
-            </h2>
-          </div>
+        
+        
 
-          
-            <div class="archive-post">
-              <time datetime="2019-10-28" class="archive-post-time">
-                2019-10-28
-              </time>
-              <span class="archive-post-title">
-                <a href="/post/hello-world/" class="archive-post-link">
-                  Hello World
-                </a>
-              </span>
-            </div>
-          
-          
-      </section>
+        
+        
+      </div>
+    </header>
+
     
     
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li>
+<ul>
+<li><a href="#数据结构">数据结构</a></li>
+<li><a href="#读写操作">读写操作</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<h3 id="数据结构">数据结构</h3>
+
+<p>channel 可以用于协程之间通信, 在标准库中结构定义如下:</p>
+
+<pre><code>type hchan struct {
+	qcount   uint  //队列当前元素数量
+	dataqsiz uint  //队列容量
+	buf      unsafe.Pointer //指向环形数组的指针
+	elemsize uint16 //每个元素大小
+	closed   uint32 //是否关闭
+	elemtype *_type //元素类型
+	sendx    uint   //下一个元素写入数组的位置
+	recvx    uint   //下一个从数组中读出元素的位置
+	recvq    waitq  //接收消息的 goroutine 队列
+	sendq    waitq  //写入消息的 groutine 队列
+	lock mutex  //互斥锁, 不能并发读写
+}
+</code></pre>
+
+<p>下面是示意图:</p>
+
+<p><img src="http://note.youdao.com/yws/public/resource/b16ecf76bf5054f3026f116fe9a3e093/WEBRESOURCE381011f93c65ac57def1222fee78c446?ynotemdtimestamp=1573488654597" alt="image" /></p>
+
+<ul>
+<li>创建了一个缓冲区大小为 6 的 channel</li>
+<li>channel 里面有两个 int 类型元素</li>
+<li>buf 是指向环形数组的指针</li>
+<li>sendx 是后续写入元素的位置</li>
+<li>recvx 是将要读取元素的位置</li>
+<li>一个 channer 只能存储一种类型的数据, 用 elemtype 代表类型,  elemsize代表大小</li>
+<li>一个 channel 只能同时被一个协程读写, 需要一个 lock
+<br /></li>
+</ul>
+
+<p>如果创建一个无缓冲的 channel, 从 channel 中读取数据就会被阻塞, 直到有数据写入; 同样的，如果往 channel 写入数据, 没有协程取走的话, 写入的协程也会被阻塞
+<img src="http://note.youdao.com/yws/public/resource/b16ecf76bf5054f3026f116fe9a3e093/WEBRESOURCEb95e46263af75a41051981aa3f4f40ba?ynotemdtimestamp=1573488654597" alt="image" /></p>
+
+<h3 id="读写操作">读写操作</h3>
+
+<p><strong>写入数据:</strong></p>
+
+<ol>
+<li>如果接收队列 recvq 不为空, 说明缓冲区中没有数据或者没有缓冲区, 直接从 recvq 中取出 G, 将数据写入 , 并且唤醒 G<br /></li>
+<li>如果缓冲区有空余位置, 直接将数据写入<br /></li>
+<li>如果缓冲区没有空余位置, 将待发送数据写入当前 G, 并且将 G 放到sendq, 进入睡眠, 等待被其他 goroutine 唤醒</li>
+</ol>
+
+<p><strong>读取数据</strong></p>
+
+<ol>
+<li>如果发送队列 sendq 不为空, 且没有缓冲区, 直接从 sendq 中取出 G, 读取数据, 并且唤醒 G   2. 如果 sendq不为空, 说明缓冲区已满, 直接从 channel 首部读取数据, 然后从 sendq 中取出 G, 把 G 的数据写入缓冲区尾部, 并唤醒 G<br /></li>
+<li>如果缓冲区有数据, 则直接读取缓冲区数据<br /></li>
+<li>将当前 goroutine 加入 sendq, 进入睡眠, 等待被唤醒</li>
+</ol>
+
+<p>关闭 channel, 会把 recvq 中的所有 G 都唤醒, 本该写入 G 的数据位置为 nil;    sendq 中的所有 G 都唤醒, 但这些 G 会 panic</p>
+
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">wei.tan</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+      2019-11-11
+      
+    </span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/hello-world/">
+            <span class="next-text nav-default">Hello World</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
 
   
   
 
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+    
+
+  
 
         </div>
       </div>
