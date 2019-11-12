@@ -1,64 +1,64 @@
-<?xml-stylesheet type="text/xsl" href="http://nameistw.github.io/sitemap.xsl"?>
+<?xml-stylesheet type="text/xsl" href="http://www.golangsite.com/sitemap.xsl"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>http://nameistw.github.io/</loc>
+    <loc>http://www.golangsite.com/</loc>
     <lastmod>2019-11-11T23:58:18+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://nameistw.github.io/categories/</loc>
+    <loc>http://www.golangsite.com/categories/</loc>
     <lastmod>2019-11-11T23:58:18+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://nameistw.github.io/post/channel/</loc>
+    <loc>http://www.golangsite.com/post/channel/</loc>
     <lastmod>2019-11-11T23:58:18+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://nameistw.github.io/categories/go/</loc>
+    <loc>http://www.golangsite.com/categories/go/</loc>
     <lastmod>2019-11-11T23:58:18+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://nameistw.github.io/post/</loc>
+    <loc>http://www.golangsite.com/post/</loc>
     <lastmod>2019-11-11T23:58:18+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://nameistw.github.io/about/</loc>
+    <loc>http://www.golangsite.com/about/</loc>
     <lastmod>2019-10-29T10:01:37+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://nameistw.github.io/categories/%E5%85%B6%E4%BB%96/</loc>
+    <loc>http://www.golangsite.com/categories/%E5%85%B6%E4%BB%96/</loc>
     <lastmod>2019-10-28T08:53:58+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://nameistw.github.io/post/hello-world/</loc>
+    <loc>http://www.golangsite.com/post/hello-world/</loc>
     <lastmod>2019-10-28T08:53:58+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   
   <url>
-    <loc>http://nameistw.github.io/tags/</loc>
+    <loc>http://www.golangsite.com/tags/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>

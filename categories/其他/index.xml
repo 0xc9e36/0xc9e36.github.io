@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title> 其他 on  记录开发的套路</title>
-    <link>http://nameistw.github.io/categories/%E5%85%B6%E4%BB%96/</link>
-    <description>Recent content in  其他 on  记录开发的套路</description>
+    <title> 其他 on  开发的套路</title>
+    <link>http://www.golangsite.com/categories/%E5%85%B6%E4%BB%96/</link>
+    <description>Recent content in  其他 on  开发的套路</description>
     <generator>Hugo -- gohugo.io</generator>
-    <language>en</language>
+    <language>zh-cn</language>
     <lastBuildDate>Mon, 28 Oct 2019 08:53:58 +0800</lastBuildDate>
     
-	<atom:link href="http://nameistw.github.io/categories/%E5%85%B6%E4%BB%96/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="http://www.golangsite.com/categories/%E5%85%B6%E4%BB%96/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
       <title>Hello World</title>
-      <link>http://nameistw.github.io/post/hello-world/</link>
+      <link>http://www.golangsite.com/post/hello-world/</link>
       <pubDate>Mon, 28 Oct 2019 08:53:58 +0800</pubDate>
       
-      <guid>http://nameistw.github.io/post/hello-world/</guid>
+      <guid>http://www.golangsite.com/post/hello-world/</guid>
       <description>hello world</description>
     </item>
     

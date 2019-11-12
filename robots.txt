@@ -1,2 +1,2 @@
 User-agent: *
-Sitemap: http://nameistw.github.io/sitemap.xml
+Sitemap: http://www.golangsite.com/sitemap.xml
