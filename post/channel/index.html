@@ -70,7 +70,7 @@
 
 <meta itemprop="datePublished" content="2019-11-11T23:58:18&#43;08:00" />
 <meta itemprop="dateModified" content="2019-11-11T23:58:18&#43;08:00" />
-<meta itemprop="wordCount" content="651">
+<meta itemprop="wordCount" content="653">
 
 
 
@@ -313,6 +313,7 @@
 <ul>
 <li><a href="#写入数据">写入数据</a></li>
 <li><a href="#读取数据">读取数据</a></li>
+<li><a href="#总结">总结</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -397,6 +398,10 @@
 </ol>
 
 <p>关闭 channel, 会把 recvq 中的所有 G 都唤醒, 本该写入 G 的数据位置为 nil;    sendq 中的所有 G 都唤醒, 但这些 G 会 panic</p>
+
+<h3 id="总结">总结</h3>
+
+<p><img src="http://note.youdao.com/yws/public/resource/b16ecf76bf5054f3026f116fe9a3e093/WEBRESOURCE26e903c7263c5d26fa86913891745f9c?ynotemdtimestamp=1573566146735" alt="image" /></p>
 
     </div>
 
