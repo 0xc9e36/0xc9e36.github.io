@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>channel 实现原理 -  开发的套路</title>
+  <title>slice 实现原理 -  开发的套路</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="wei.tan" />
-  <meta name="description" content="数据结构 channel 可以用于协程之间通信, 在标准库中结构定义如下: 1 2 3 4 5 6 7 8 9 10 11 12 13 type hchan struct { qcount uint //队列当前元素数量 dataqsiz uint //队列容量 buf unsafe.Pointer //指" />
+  <meta name="description" content="slice 底层使用数组实现, 但是比数组灵活, 可以动态扩容, 如果越界访问, 就会发生 panic 数据结构 1 2 3 4 5 type slice struct { array unsafe.Pointer //底层数组指针 len int //元素个数 cap int" />
 
 
 
@@ -34,7 +34,7 @@
 <meta name="generator" content="Hugo 0.59.0" />
 
 
-<link rel="canonical" href="http://www.golangsite.com/post/channel/" />
+<link rel="canonical" href="http://www.golangsite.com/post/slice/" />
 
 
 
@@ -58,26 +58,26 @@
 
 
 
-<meta property="og:title" content="channel 实现原理" />
-<meta property="og:description" content="数据结构 channel 可以用于协程之间通信, 在标准库中结构定义如下: 1 2 3 4 5 6 7 8 9 10 11 12 13 type hchan struct { qcount uint //队列当前元素数量 dataqsiz uint //队列容量 buf unsafe.Pointer //指" />
+<meta property="og:title" content="slice 实现原理" />
+<meta property="og:description" content="slice 底层使用数组实现, 但是比数组灵活, 可以动态扩容, 如果越界访问, 就会发生 panic 数据结构 1 2 3 4 5 type slice struct { array unsafe.Pointer //底层数组指针 len int //元素个数 cap int" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://www.golangsite.com/post/channel/" />
-<meta property="article:published_time" content="2019-11-11T23:58:18+08:00" />
-<meta property="article:modified_time" content="2019-11-11T23:58:18+08:00" />
-<meta itemprop="name" content="channel 实现原理">
-<meta itemprop="description" content="数据结构 channel 可以用于协程之间通信, 在标准库中结构定义如下: 1 2 3 4 5 6 7 8 9 10 11 12 13 type hchan struct { qcount uint //队列当前元素数量 dataqsiz uint //队列容量 buf unsafe.Pointer //指">
+<meta property="og:url" content="http://www.golangsite.com/post/slice/" />
+<meta property="article:published_time" content="2019-11-12T23:03:57+08:00" />
+<meta property="article:modified_time" content="2019-11-12T23:03:57+08:00" />
+<meta itemprop="name" content="slice 实现原理">
+<meta itemprop="description" content="slice 底层使用数组实现, 但是比数组灵活, 可以动态扩容, 如果越界访问, 就会发生 panic 数据结构 1 2 3 4 5 type slice struct { array unsafe.Pointer //底层数组指针 len int //元素个数 cap int">
 
 
-<meta itemprop="datePublished" content="2019-11-11T23:58:18&#43;08:00" />
-<meta itemprop="dateModified" content="2019-11-11T23:58:18&#43;08:00" />
-<meta itemprop="wordCount" content="653">
+<meta itemprop="datePublished" content="2019-11-12T23:03:57&#43;08:00" />
+<meta itemprop="dateModified" content="2019-11-12T23:03:57&#43;08:00" />
+<meta itemprop="wordCount" content="804">
 
 
 
 <meta itemprop="keywords" content="" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="channel 实现原理"/>
-<meta name="twitter:description" content="数据结构 channel 可以用于协程之间通信, 在标准库中结构定义如下: 1 2 3 4 5 6 7 8 9 10 11 12 13 type hchan struct { qcount uint //队列当前元素数量 dataqsiz uint //队列容量 buf unsafe.Pointer //指"/>
+<meta name="twitter:title" content="slice 实现原理"/>
+<meta name="twitter:description" content="slice 底层使用数组实现, 但是比数组灵活, 可以动态扩容, 如果越界访问, 就会发生 panic 数据结构 1 2 3 4 5 type slice struct { array unsafe.Pointer //底层数组指针 len int //元素个数 cap int"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -279,11 +279,11 @@
           <article class="post bg-white">
     
     <header class="post-header">
-      <h1 class="post-title">channel 实现原理</h1>
+      <h1 class="post-title">slice 实现原理</h1>
       
       <div class="post-meta">
-        <time datetime="2019-11-11" class="post-time">
-          2019-11-11
+        <time datetime="2019-11-12" class="post-time">
+          2019-11-12
         </time>
         <div class="post-category">
             <a href="http://www.golangsite.com/categories/go/"> go </a>
@@ -309,12 +309,9 @@
 <li>
 <ul>
 <li><a href="#数据结构">数据结构</a></li>
-<li><a href="#读写操作">读写操作</a>
-<ul>
-<li><a href="#写入数据">写入数据</a></li>
-<li><a href="#读取数据">读取数据</a></li>
-<li><a href="#总结">总结</a></li>
-</ul></li>
+<li><a href="#扩容">扩容</a></li>
+<li><a href="#常见的坑">常见的坑</a></li>
+<li><a href="#最佳实践">最佳实践</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -325,9 +322,71 @@
     <div class="post-content">
       
 
-<h2 id="数据结构">数据结构</h2>
+<p>slice 底层使用数组实现, 但是比数组灵活, 可以动态扩容, 如果越界访问, 就会发生 panic</p>
 
-<p>channel 可以用于协程之间通信, 在标准库中结构定义如下:</p>
+<h2 id="数据结构">数据结构</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">type slice struct {
+	array unsafe.Pointer  //底层数组指针
+	len   int   //元素个数
+	cap   int   //容量
+}</pre></td></tr></table>
+</div>
+</div>
+<p>使用 make 创建 slice, 可以指定长度和容量</p>
+
+<p><img src="http://note.youdao.com/yws/public/resource/f02bd1f5f085c6401e4f3d9ee912f95a/WEBRESOURCE69fdbbdd4500f7fe40fb4da668522e7b?ynotemdtimestamp=1573567874612" alt="image" /></p>
+
+<p>创建一个长度为 2 的 slice, 底层数组大小为 4, 可以直接使用 slice[0] - slice[1] 操作切片, 后续向 slice 添加元素不用再重新分配内存, 直接使用预留内存即可</p>
+
+<p>使用数组创建 slice, 数组将会和 slice 共用部分内存
+<img src="http://note.youdao.com/yws/public/resource/f02bd1f5f085c6401e4f3d9ee912f95a/WEBRESOURCE6098294eaee3c4a51c159b8a7fb87c6d?ynotemdtimestamp=1573568601605" alt="image" /></p>
+
+<h2 id="扩容">扩容</h2>
+
+<ul>
+<li>如果原来容量小于 <strong>1024</strong>, 那么扩容后的大小为原来的 <strong>2</strong> 倍</li>
+<li>如果原来容量大于 <strong>1024</strong>, 那么扩容后的大小为原来的 <strong>1.25</strong> 倍</li>
+</ul>
+
+<p>上面的说法其实不准确, 反例是下面这段代码:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kn">import</span> <span class="p">(</span>
+	<span class="s">&#34;fmt&#34;</span>
+<span class="p">)</span>
+
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">s</span> <span class="o">:=</span> <span class="p">[]</span><span class="kt">int</span><span class="p">{</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">}</span>
+	<span class="nx">s</span> <span class="p">=</span> <span class="nb">append</span><span class="p">(</span><span class="nx">s</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">6</span><span class="p">)</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Printf</span><span class="p">(</span><span class="s">&#34;%d %d&#34;</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="nx">s</span><span class="p">),</span><span class="nb">cap</span><span class="p">(</span><span class="nx">s</span><span class="p">))</span>	<span class="c1">//输出 5 6
+</span><span class="c1"></span><span class="p">}</span></pre></td></tr></table>
+</div>
+</div>
+<p>如果按照规律, cap(s) 的值应该是 8 才对, 结果却是 6, 查看扩容源码, 发现在扩容之后, 还会内存对齐, 进行内存对齐之后, 新 slice 的大小大于等于原来的 2 倍或者 1.25 倍</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><span class="lnt"> 1
@@ -343,65 +402,154 @@
 </span><span class="lnt">11
 </span><span class="lnt">12
 </span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span><span class="lnt">54
+</span><span class="lnt">55
+</span><span class="lnt">56
+</span><span class="lnt">57
+</span><span class="lnt">58
+</span><span class="lnt">59
+</span><span class="lnt">60
+</span><span class="lnt">61
+</span><span class="lnt">62
+</span><span class="lnt">63
+</span><span class="lnt">64
+</span><span class="lnt">65
 </span></pre></td>
 <td class="lntd">
-<pre class="chroma">type hchan struct {
-	qcount   uint  //队列当前元素数量
-	dataqsiz uint  //队列容量
-	buf      unsafe.Pointer //指向环形数组的指针
-	elemsize uint16 //每个元素大小
-	closed   uint32 //是否关闭
-	elemtype *_type //元素类型
-	sendx    uint   //下一个元素写入数组的位置
-	recvx    uint   //下一个从数组中读出元素的位置
-	recvq    waitq  //接收消息的 goroutine 队列
-	sendq    waitq  //写入消息的 groutine 队列
-	lock mutex  //互斥锁, 不能并发读写
-}</pre></td></tr></table>
-</div>
-</div>
-<p>下面是示意图:</p>
+<pre class="chroma">    ......
+    
+	newcap := old.cap
+	doublecap := newcap + newcap
+	if cap &gt; doublecap {
+		newcap = cap
+	} else {
+		if old.len &lt; 1024 {
+			newcap = doublecap
+		} else {
+			// Check 0 &lt; newcap to detect overflow
+			// and prevent an infinite loop.
+			for 0 &lt; newcap &amp;&amp; newcap &lt; cap {
+				newcap += newcap / 4
+			}
+			// Set newcap to the requested cap when
+			// the newcap calculation overflowed.
+			if newcap &lt;= 0 {
+				newcap = cap
+			}
+		}
+	}
 
-<p><img src="http://note.youdao.com/yws/public/resource/b16ecf76bf5054f3026f116fe9a3e093/WEBRESOURCE381011f93c65ac57def1222fee78c446?ynotemdtimestamp=1573488654597" alt="image" /></p>
+	var overflow bool
+	var lenmem, newlenmem, capmem uintptr
+	// Specialize for common values of et.size.
+	// For 1 we don&#39;t need any division/multiplication.
+	// For sys.PtrSize, compiler will optimize division/multiplication into a shift by a constant.
+	// For powers of 2, use a variable shift.
+	switch {
+	case et.size == 1:
+		lenmem = uintptr(old.len)
+		newlenmem = uintptr(cap)
+		capmem = roundupsize(uintptr(newcap))
+		overflow = uintptr(newcap) &gt; maxAlloc
+		newcap = int(capmem)
+	case et.size == sys.PtrSize:
+		lenmem = uintptr(old.len) * sys.PtrSize
+		newlenmem = uintptr(cap) * sys.PtrSize
+		capmem = roundupsize(uintptr(newcap) * sys.PtrSize)
+		overflow = uintptr(newcap) &gt; maxAlloc/sys.PtrSize
+		newcap = int(capmem / sys.PtrSize)
+	case isPowerOfTwo(et.size):
+		var shift uintptr
+		if sys.PtrSize == 8 {
+			// Mask shift for better code generation.
+			shift = uintptr(sys.Ctz64(uint64(et.size))) &amp; 63
+		} else {
+			shift = uintptr(sys.Ctz32(uint32(et.size))) &amp; 31
+		}
+		lenmem = uintptr(old.len) &lt;&lt; shift
+		newlenmem = uintptr(cap) &lt;&lt; shift
+		capmem = roundupsize(uintptr(newcap) &lt;&lt; shift)
+		overflow = uintptr(newcap) &gt; (maxAlloc &gt;&gt; shift)
+		newcap = int(capmem &gt;&gt; shift)
+	default:
+		lenmem = uintptr(old.len) * et.size
+		newlenmem = uintptr(cap) * et.size
+		capmem, overflow = math.MulUintptr(et.size, uintptr(newcap))
+		capmem = roundupsize(capmem)
+		newcap = int(capmem / et.size)
+	}
+	
+	......
+	</pre></td></tr></table>
+</div>
+</div>
+<h2 id="常见的坑">常见的坑</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">//创建 nil 切片
+var arr1 []int
+
+//创建空切片
+arr2 := []int{}</pre></td></tr></table>
+</div>
+</div>
+<p>nil 切片 len 和 cap 都是 0,  数据指针为 nil<br />
+空切片 len 和 cap 都是 0, 但是数据指针不为 nil, 所以两者比较并不是 true</p>
+
+<h2 id="最佳实践">最佳实践</h2>
 
 <ul>
-<li>创建了一个缓冲区大小为 6 的 channel</li>
-<li>channel 里面有两个 int 类型元素</li>
-<li>buf 是指向环形数组的指针</li>
-<li>sendx 是后续写入元素的位置</li>
-<li>recvx 是将要读取元素的位置</li>
-<li>一个 channel 只能存储一种类型的数据, 用 elemtype 代表类型,  elemsize代表大小</li>
-<li>channel 不能并发读写, 所以需要一个 lock
-<br /></li>
+<li>尽量预先分配内存, 避免频繁扩容</li>
+<li>谨慎使用多个切片操作同一个数组, 避免读写冲突</li>
+<li>slice 作为函数参数传递, 不会复制整个 slice</li>
 </ul>
-
-<p>如果创建一个无缓冲的 channel, 从 channel 中读取数据会被阻塞, 直到有数据写入; 同样的，如果往 channel 写入数据, 没有协程接收的话 写入数据的协程也会被阻塞
-<img src="http://note.youdao.com/yws/public/resource/b16ecf76bf5054f3026f116fe9a3e093/WEBRESOURCEb95e46263af75a41051981aa3f4f40ba?ynotemdtimestamp=1573488654597" alt="image" /></p>
-
-<h2 id="读写操作">读写操作</h2>
-
-<h3 id="写入数据">写入数据</h3>
-
-<ol>
-<li>如果接收队列 recvq 不为空, 说明缓冲区中没有数据或者没有缓冲区, 直接从 recvq 中取出 G, 将数据写入 , 并且唤醒 G<br /></li>
-<li>如果缓冲区有空余位置, 直接将数据写入<br /></li>
-<li>如果缓冲区没有空余位置, 将待发送数据写入当前 G, 并且将 G 放到sendq, 进入睡眠, 等待被其他 goroutine 唤醒</li>
-</ol>
-
-<h3 id="读取数据">读取数据</h3>
-
-<ol>
-<li>如果发送队列 sendq 不为空, 且没有缓冲区, 直接从 sendq 中取出 G, 读取数据, 并且唤醒 G<br /></li>
-<li>如果 sendq不为空, 说明缓冲区已满, 直接从 channel 首部读取数据, 然后从 sendq 中取出 G, 把 G 的数据写入缓冲区尾部, 并唤醒 G<br /></li>
-<li>如果缓冲区有数据, 则直接读取缓冲区数据<br /></li>
-<li>将当前 goroutine 加入 sendq, 进入睡眠, 等待被唤醒</li>
-</ol>
-
-<p>关闭 channel, 会把 recvq 中的所有 G 都唤醒, 本该写入 G 的数据位置为 nil;    sendq 中的所有 G 都唤醒, 但这些 G 会 panic</p>
-
-<h3 id="总结">总结</h3>
-
-<p><img src="http://note.youdao.com/yws/public/resource/b16ecf76bf5054f3026f116fe9a3e093/WEBRESOURCE26e903c7263c5d26fa86913891745f9c?ynotemdtimestamp=1573566146735" alt="image" /></p>
 
     </div>
 
@@ -415,7 +563,7 @@
   <p class="copyright-item">
     <span class="item-title">上次更新</span>
     <span class="item-content">
-      2019-11-11
+      2019-11-12
       
     </span>
   </p>
@@ -436,7 +584,7 @@
       
       <nav class="post-nav">
         
-          <a class="prev" href="/post/slice/">
+          <a class="prev" href="/post/map/">
             
             <i class="iconfont">
               <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
@@ -446,12 +594,12 @@
 </svg>
 
             </i>
-            <span class="prev-text nav-default">slice 实现原理</span>
+            <span class="prev-text nav-default">map 实现原理</span>
             <span class="prev-text nav-mobile">上一篇</span>
           </a>
         
-          <a class="next" href="/post/hello-world/">
-            <span class="next-text nav-default">Hello World</span>
+          <a class="next" href="/post/channel/">
+            <span class="next-text nav-default">channel 实现原理</span>
             <span class="prev-text nav-mobile">下一篇</span>
             
             <i class="iconfont">

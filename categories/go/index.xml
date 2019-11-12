@@ -6,10 +6,28 @@
     <description>Recent content in go on  开发的套路</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 11 Nov 2019 23:58:18 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 12 Nov 2019 23:34:07 +0800</lastBuildDate>
     
 	<atom:link href="http://www.golangsite.com/categories/go/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>map 实现原理</title>
+      <link>http://www.golangsite.com/post/map/</link>
+      <pubDate>Tue, 12 Nov 2019 23:34:07 +0800</pubDate>
+      
+      <guid>http://www.golangsite.com/post/map/</guid>
+      <description>数据结构 1 2 3 4 5 6 7 8 9 10 11 12 13 type hmap struct { count int //元素个数 flags uint8 B uint8 //指示数组容量 noverflow uint16 hash0 uint32 buckets unsafe.Pointer //数组指针, 大小为 2^B oldbuckets unsafe.Pointer nevacuate uintptr extra *mapextra } buckets 是数组结</description>
+    </item>
+    
+    <item>
+      <title>slice 实现原理</title>
+      <link>http://www.golangsite.com/post/slice/</link>
+      <pubDate>Tue, 12 Nov 2019 23:03:57 +0800</pubDate>
+      
+      <guid>http://www.golangsite.com/post/slice/</guid>
+      <description>slice 底层使用数组实现, 但是比数组灵活, 可以动态扩容, 如果越界访问, 就会发生 panic 数据结构 1 2 3 4 5 type slice struct { array unsafe.Pointer //底层数组指针 len int //元素个数 cap int</description>
+    </item>
     
     <item>
       <title>channel 实现原理</title>

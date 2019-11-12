@@ -61,7 +61,7 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="http://www.golangsite.com/" />
 
-<meta property="og:updated_time" content="2019-11-11T23:58:18+08:00" />
+<meta property="og:updated_time" content="2019-11-12T23:34:07+08:00" />
 <meta itemprop="name" content=" 开发的套路">
 <meta itemprop="description" content="">
 
@@ -278,6 +278,74 @@
   <header class="post-header">
     <h1 class="post-title">
       
+      <a class="post-link" href="/post/map/">map 实现原理</a>
+    </h1>
+    
+    <div class="post-meta">
+      <time datetime="2019-11-12" class="post-time">
+        2019-11-12
+      </time>
+      <div class="post-category">
+          <a href="http://www.golangsite.com/categories/go/"> go </a>
+          
+        </div>
+      
+      
+      
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      数据结构 1 2 3 4 5 6 7 8 9 10 11 12 13 type hmap struct { count int //元素个数 flags uint8 B uint8 //指示数组容量 noverflow uint16 hash0 uint32 buckets unsafe.Pointer //数组指针, 大小为 2^B oldbuckets unsafe.Pointer nevacuate uintptr extra *mapextra } buckets 是数组结
+    </div>
+    <div class="read-more">
+      <a href="/post/map/" class="read-more-link">阅读全文</a>
+    </div>
+    
+  </div>
+</article>
+
+  
+    <article class="post bg-white">
+  <header class="post-header">
+    <h1 class="post-title">
+      
+      <a class="post-link" href="/post/slice/">slice 实现原理</a>
+    </h1>
+    
+    <div class="post-meta">
+      <time datetime="2019-11-12" class="post-time">
+        2019-11-12
+      </time>
+      <div class="post-category">
+          <a href="http://www.golangsite.com/categories/go/"> go </a>
+          
+        </div>
+      
+      
+      
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      slice 底层使用数组实现, 但是比数组灵活, 可以动态扩容, 如果越界访问, 就会发生 panic 数据结构 1 2 3 4 5 type slice struct { array unsafe.Pointer //底层数组指针 len int //元素个数 cap int
+    </div>
+    <div class="read-more">
+      <a href="/post/slice/" class="read-more-link">阅读全文</a>
+    </div>
+    
+  </div>
+</article>
+
+  
+    <article class="post bg-white">
+  <header class="post-header">
+    <h1 class="post-title">
+      
       <a class="post-link" href="/post/channel/">channel 实现原理</a>
     </h1>
     
@@ -308,39 +376,6 @@
 </article>
 
   
-    <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title">
-      
-      <a class="post-link" href="/post/hello-world/">Hello World</a>
-    </h1>
-    
-    <div class="post-meta">
-      <time datetime="2019-10-28" class="post-time">
-        2019-10-28
-      </time>
-      <div class="post-category">
-          
-        </div>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      hello world
-    </div>
-    <div class="read-more">
-      <a href="/post/hello-world/" class="read-more-link">阅读全文</a>
-    </div>
-    
-  </div>
-</article>
-
-  
 </section>
 
 
@@ -360,6 +395,22 @@
 
   
   
+
+  
+  
+  <nav class="pagination">
+    <ul>
+      
+      <li  class="active" >
+        <a href="/">1</a>
+      </li>
+      
+      <li >
+        <a href="/page/2/">2</a>
+      </li>
+      
+    </ul>
+  </nav>
 
   
   
