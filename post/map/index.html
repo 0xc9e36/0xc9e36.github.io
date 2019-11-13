@@ -70,7 +70,7 @@
 
 <meta itemprop="datePublished" content="2019-11-12T23:34:07&#43;08:00" />
 <meta itemprop="dateModified" content="2019-11-12T23:34:07&#43;08:00" />
-<meta itemprop="wordCount" content="779">
+<meta itemprop="wordCount" content="822">
 
 
 
@@ -310,6 +310,7 @@
 <ul>
 <li><a href="#数据结构">数据结构</a></li>
 <li><a href="#查找">查找</a></li>
+<li><a href="#插入">插入</a></li>
 <li><a href="#扩容">扩容</a>
 <ul>
 <li><a href="#增量扩容">增量扩容</a></li>
@@ -428,6 +429,15 @@
 <li>取 hash 高位在 bucket 的 tophash 数组中查询</li>
 <li>如果 hash 相等, 比较 key 是否相等, 如果不相等, 继续往后查找下一个 bucket</li>
 <li>如果当前处于扩容, 从 oldbuckets 中查找</li>
+</ol>
+
+<h2 id="插入">插入</h2>
+
+<ol>
+<li>根据 key 计算 hash 值</li>
+<li>取 hash 低位与 B 取模确定在哪个桶</li>
+<li>如果已存在 key, 直接更新</li>
+<li>如果不存在 key, 直接插入</li>
 </ol>
 
 <h2 id="扩容">扩容</h2>
