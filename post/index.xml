@@ -17,7 +17,7 @@
       <pubDate>Tue, 12 Nov 2019 23:34:07 +0800</pubDate>
       
       <guid>http://www.golangsite.com/post/map/</guid>
-      <description>数据结构 1 2 3 4 5 6 7 8 9 10 11 12 13 type hmap struct { count int //元素个数 flags uint8 B uint8 //指示数组容量 noverflow uint16 hash0 uint32 buckets unsafe.Pointer //数组指针, 大小为 2^B oldbuckets unsafe.Pointer nevacuate uintptr extra *mapextra } buckets 是数组结</description>
+      <description>map 常见的做法是采用数组来实现, 通过 hash 函数, 将不同的 key 均匀散列到数组中, 可以实现增删查改 O(1) 的时间复杂度 常用于解决 hash 冲突有两种做法: 拉链法: 如果</description>
     </item>
     
     <item>

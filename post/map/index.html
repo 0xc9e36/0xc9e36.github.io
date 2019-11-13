@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="wei.tan" />
-  <meta name="description" content="数据结构 1 2 3 4 5 6 7 8 9 10 11 12 13 type hmap struct { count int //元素个数 flags uint8 B uint8 //指示数组容量 noverflow uint16 hash0 uint32 buckets unsafe.Pointer //数组指针, 大小为 2^B oldbuckets unsafe.Pointer nevacuate uintptr extra *mapextra } buckets 是数组结" />
+  <meta name="description" content="map 常见的做法是采用数组来实现, 通过 hash 函数, 将不同的 key 均匀散列到数组中, 可以实现增删查改 O(1) 的时间复杂度 常用于解决 hash 冲突有两种做法: 拉链法: 如果" />
 
 
 
@@ -59,25 +59,25 @@
 
 
 <meta property="og:title" content="map 实现原理" />
-<meta property="og:description" content="数据结构 1 2 3 4 5 6 7 8 9 10 11 12 13 type hmap struct { count int //元素个数 flags uint8 B uint8 //指示数组容量 noverflow uint16 hash0 uint32 buckets unsafe.Pointer //数组指针, 大小为 2^B oldbuckets unsafe.Pointer nevacuate uintptr extra *mapextra } buckets 是数组结" />
+<meta property="og:description" content="map 常见的做法是采用数组来实现, 通过 hash 函数, 将不同的 key 均匀散列到数组中, 可以实现增删查改 O(1) 的时间复杂度 常用于解决 hash 冲突有两种做法: 拉链法: 如果" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://www.golangsite.com/post/map/" />
 <meta property="article:published_time" content="2019-11-12T23:34:07+08:00" />
 <meta property="article:modified_time" content="2019-11-12T23:34:07+08:00" />
 <meta itemprop="name" content="map 实现原理">
-<meta itemprop="description" content="数据结构 1 2 3 4 5 6 7 8 9 10 11 12 13 type hmap struct { count int //元素个数 flags uint8 B uint8 //指示数组容量 noverflow uint16 hash0 uint32 buckets unsafe.Pointer //数组指针, 大小为 2^B oldbuckets unsafe.Pointer nevacuate uintptr extra *mapextra } buckets 是数组结">
+<meta itemprop="description" content="map 常见的做法是采用数组来实现, 通过 hash 函数, 将不同的 key 均匀散列到数组中, 可以实现增删查改 O(1) 的时间复杂度 常用于解决 hash 冲突有两种做法: 拉链法: 如果">
 
 
 <meta itemprop="datePublished" content="2019-11-12T23:34:07&#43;08:00" />
 <meta itemprop="dateModified" content="2019-11-12T23:34:07&#43;08:00" />
-<meta itemprop="wordCount" content="91">
+<meta itemprop="wordCount" content="779">
 
 
 
 <meta itemprop="keywords" content="" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="map 实现原理"/>
-<meta name="twitter:description" content="数据结构 1 2 3 4 5 6 7 8 9 10 11 12 13 type hmap struct { count int //元素个数 flags uint8 B uint8 //指示数组容量 noverflow uint16 hash0 uint32 buckets unsafe.Pointer //数组指针, 大小为 2^B oldbuckets unsafe.Pointer nevacuate uintptr extra *mapextra } buckets 是数组结"/>
+<meta name="twitter:description" content="map 常见的做法是采用数组来实现, 通过 hash 函数, 将不同的 key 均匀散列到数组中, 可以实现增删查改 O(1) 的时间复杂度 常用于解决 hash 冲突有两种做法: 拉链法: 如果"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -309,6 +309,12 @@
 <li>
 <ul>
 <li><a href="#数据结构">数据结构</a></li>
+<li><a href="#查找">查找</a></li>
+<li><a href="#扩容">扩容</a>
+<ul>
+<li><a href="#增量扩容">增量扩容</a></li>
+<li><a href="#等量扩容">等量扩容</a></li>
+</ul></li>
 </ul></li>
 </ul>
 </nav>
@@ -318,6 +324,24 @@
     
     <div class="post-content">
       
+
+<p>map 常见的做法是采用数组来实现, 通过 hash 函数, 将不同的 key 均匀散列到数组中, 可以实现增删查改 O(1) 的时间复杂度</p>
+
+<p>常用于解决 hash 冲突有两种做法:</p>
+
+<ul>
+<li>拉链法: 如果插入 key 发生冲突了, 数组的 value 会保存为一条链表, 新增的元素插入链表即可. 如果链表长度大于某个阈值, 某些语言会转化为平衡树结构, 提升查找性能</li>
+</ul>
+
+<p><img src="http://note.youdao.com/yws/public/resource/7fd4e0b5317830df71e42fb359e9007d/WEBRESOURCE7d6b0279ced768abbdda302bdc7cb264?ynotemdtimestamp=1573607381530" alt="image" /></p>
+
+<ul>
+<li>开放寻址法: 如果发生 hash 冲突, 将 key 写入数组中下一个不为空的位置, 查找元素时, 先定位到发生冲突的位置, 然后不断向后比较 key, 线性查找, 直到 key 匹配或者遇到空元素</li>
+</ul>
+
+<p><img src="http://note.youdao.com/yws/public/resource/7fd4e0b5317830df71e42fb359e9007d/WEBRESOURCE679b785477fb0c2c5431a897a34c8f79?ynotemdtimestamp=1573607381530" alt="image" /></p>
+
+<p>下面来探究一下 golang 中是如何实现 map 结构</p>
 
 <h2 id="数据结构">数据结构</h2>
 <div class="highlight"><div class="chroma">
@@ -342,10 +366,10 @@
 	flags     uint8
 	B         uint8    //指示数组容量   
 	noverflow uint16
-	hash0     uint32 
+	hash0     uint32  // hash种子
 
 	buckets    unsafe.Pointer   //数组指针, 大小为 2^B
-	oldbuckets unsafe.Pointer 
+	oldbuckets unsafe.Pointer //扩容期间使用, 大小为当前 buckets 一半
 	nevacuate  uintptr       
 
 	extra *mapextra 
@@ -354,7 +378,85 @@
 </div>
 <p>buckets 是数组结构, 每个元素代表 hash 节点, 保存一个或者一组 key-value</p>
 
-<p><img src="http://note.youdao.com/yws/public/resource/7fd4e0b5317830df71e42fb359e9007d/WEBRESOURCEceb6d3e7563efdaa19a5e13e218da521?ynotemdtimestamp=1573572644412" alt="image" /></p>
+<p>buckets 结构定义:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">type bmap struct {
+	tophash [bucketCnt]uint8
+}</pre></td></tr></table>
+</div>
+</div>
+<p>编译期间会动态生成一个新的结构:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">type bmap struct {
+    topbits  [8]uint8
+    keys     [8]keytype
+    values   [8]valuetype
+    pad      uintptr
+    overflow uintptr
+}</pre></td></tr></table>
+</div>
+</div>
+<ul>
+<li>bmap 是一个 hash 桶, 里面可容纳 8 个元素, 每个元素的 hash 值都一样</li>
+<li>key 具体落在桶的哪个位置, 需要根据 key 的 hash 值的高 8 位计算</li>
+<li>overflow指向下一个 bucket 的位置, 用于 hash 冲突</li>
+</ul>
+
+<p><img src="http://note.youdao.com/yws/public/resource/7fd4e0b5317830df71e42fb359e9007d/WEBRESOURCE62c3d5073687e52c5e49786d4bfd032e?ynotemdtimestamp=1573624619872" alt="image" /></p>
+
+<h2 id="查找">查找</h2>
+
+<ol>
+<li>根据 key 计算 hash 值</li>
+<li>取 hash 低位与 B 取模确定在哪个桶</li>
+<li>取 hash 高位在 bucket 的 tophash 数组中查询</li>
+<li>如果 hash 相等, 比较 key 是否相等, 如果不相等, 继续往后查找下一个 bucket</li>
+<li>如果当前处于扩容, 从 oldbuckets 中查找</li>
+</ol>
+
+<h2 id="扩容">扩容</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">负载因子 = key数量 / bucket数量</pre></td></tr></table>
+</div>
+</div>
+<p>因为每个 bucket 可以保存 8 个元素, 所以 go map 的负载因子最大可能为 8, 表示数组全部存满</p>
+
+<p>触发条件:</p>
+
+<ol>
+<li>负载因子大于 6.5</li>
+<li>overflow长度大于 2^15</li>
+</ol>
+
+<h3 id="增量扩容">增量扩容</h3>
+
+<p>buckets 会新建 bucket, 如果是新插入 key, 保存到新建的 bucket 中, 同时维护一个  oldbuckets 指向旧的 buckets; 后续对 map 的访问会逐步将 oldbuckets 的数据迁移到新的 bucket 中来, 等到迁移完成, 删除 oldbuckets</p>
+
+<h3 id="等量扩容">等量扩容</h3>
+
+<p>不会增大容量, 重新组织 bucket, 提高使用率; 在极端情况下, 进行大量增删操作, key 集中在一小部分 bucket 中, overflow 数量增多, 但是负载不高, 无法进行增量扩容</p>
+
+<p><img src="http://note.youdao.com/yws/public/resource/7fd4e0b5317830df71e42fb359e9007d/WEBRESOURCEe808e2909bde928ed5ba9cfaec7ad70b?ynotemdtimestamp=1573649593790" alt="image" /></p>
 
     </div>
 
