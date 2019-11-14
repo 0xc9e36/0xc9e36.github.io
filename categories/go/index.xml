@@ -6,10 +6,19 @@
     <description>Recent content in go on  开发的套路</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 13 Nov 2019 22:40:54 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 14 Nov 2019 22:29:56 +0800</lastBuildDate>
     
 	<atom:link href="http://www.golangsite.com/categories/go/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>sync.Mutex 实现原理</title>
+      <link>http://www.golangsite.com/post/lock/</link>
+      <pubDate>Thu, 14 Nov 2019 22:29:56 +0800</pubDate>
+      
+      <guid>http://www.golangsite.com/post/lock/</guid>
+      <description>数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: - Locked: 是否已经被锁定, 0 未锁定 1 已锁定 - Woken: 是否有协程已经被</description>
+    </item>
     
     <item>
       <title>defer 实现原理</title>

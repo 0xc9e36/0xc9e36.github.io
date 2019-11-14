@@ -70,7 +70,7 @@
 
 <meta itemprop="datePublished" content="2019-11-11T23:58:18&#43;08:00" />
 <meta itemprop="dateModified" content="2019-11-11T23:58:18&#43;08:00" />
-<meta itemprop="wordCount" content="653">
+<meta itemprop="wordCount" content="660">
 
 
 
@@ -383,7 +383,7 @@
 <h3 id="写入数据">写入数据</h3>
 
 <ol>
-<li>如果接收队列 recvq 不为空, 说明缓冲区中没有数据或者没有缓冲区, 直接从 recvq 中取出 G, 将数据写入 , 并且唤醒 G<br /></li>
+<li>如果接收队列 recvq 不为空, 说明缓冲区中没有数据或者没有缓冲区, 直接从 recvq 中取出 G (随机取出), 将数据写入 , 并且唤醒 G<br /></li>
 <li>如果缓冲区有空余位置, 直接将数据写入<br /></li>
 <li>如果缓冲区没有空余位置, 将待发送数据写入当前 G, 并且将 G 放到sendq, 进入睡眠, 等待被其他 goroutine 唤醒</li>
 </ol>
