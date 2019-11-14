@@ -298,7 +298,7 @@
   <div class="post-content">
     
     <div class="post-summary">
-      数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: - Locked: 是否已经被锁定, 0 未锁定 1 已锁定 - Woken: 是否有协程已经被
+      数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被
     </div>
     <div class="read-more">
       <a href="/post/lock/" class="read-more-link">阅读全文</a>
