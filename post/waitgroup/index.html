@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>sync.Mutex 实现原理 -  开发的套路</title>
+  <title>sync.WaitGroup 实现原理 -  开发的套路</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="wei.tan" />
-  <meta name="description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被" />
+  <meta name="description" content="数据结构 1 2 3 4 5 6 7 8 9 10 type WaitGroup struct { noCopy noCopy // 64-bit value: high 32 bits are counter, low 32 bits are waiter count. // 64-bit atomic operations require 64-bit alignment, but 32-bit // compilers do not ensure it. So we allocate 12 bytes and then use // the aligned 8 bytes in them as state, and the other 4" />
 
 
 
@@ -34,7 +34,7 @@
 <meta name="generator" content="Hugo 0.59.0" />
 
 
-<link rel="canonical" href="http://www.golangsite.com/post/lock/" />
+<link rel="canonical" href="http://www.golangsite.com/post/waitgroup/" />
 
 
 
@@ -58,26 +58,26 @@
 
 
 
-<meta property="og:title" content="sync.Mutex 实现原理" />
-<meta property="og:description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被" />
+<meta property="og:title" content="sync.WaitGroup 实现原理" />
+<meta property="og:description" content="数据结构 1 2 3 4 5 6 7 8 9 10 type WaitGroup struct { noCopy noCopy // 64-bit value: high 32 bits are counter, low 32 bits are waiter count. // 64-bit atomic operations require 64-bit alignment, but 32-bit // compilers do not ensure it. So we allocate 12 bytes and then use // the aligned 8 bytes in them as state, and the other 4" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://www.golangsite.com/post/lock/" />
-<meta property="article:published_time" content="2019-11-14T22:29:56+08:00" />
-<meta property="article:modified_time" content="2019-11-14T22:29:56+08:00" />
-<meta itemprop="name" content="sync.Mutex 实现原理">
-<meta itemprop="description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被">
+<meta property="og:url" content="http://www.golangsite.com/post/waitgroup/" />
+<meta property="article:published_time" content="2019-11-16T16:09:23+08:00" />
+<meta property="article:modified_time" content="2019-11-16T16:09:23+08:00" />
+<meta itemprop="name" content="sync.WaitGroup 实现原理">
+<meta itemprop="description" content="数据结构 1 2 3 4 5 6 7 8 9 10 type WaitGroup struct { noCopy noCopy // 64-bit value: high 32 bits are counter, low 32 bits are waiter count. // 64-bit atomic operations require 64-bit alignment, but 32-bit // compilers do not ensure it. So we allocate 12 bytes and then use // the aligned 8 bytes in them as state, and the other 4">
 
 
-<meta itemprop="datePublished" content="2019-11-14T22:29:56&#43;08:00" />
-<meta itemprop="dateModified" content="2019-11-14T22:29:56&#43;08:00" />
-<meta itemprop="wordCount" content="917">
+<meta itemprop="datePublished" content="2019-11-16T16:09:23&#43;08:00" />
+<meta itemprop="dateModified" content="2019-11-16T16:09:23&#43;08:00" />
+<meta itemprop="wordCount" content="804">
 
 
 
 <meta itemprop="keywords" content="" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="sync.Mutex 实现原理"/>
-<meta name="twitter:description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被"/>
+<meta name="twitter:title" content="sync.WaitGroup 实现原理"/>
+<meta name="twitter:description" content="数据结构 1 2 3 4 5 6 7 8 9 10 type WaitGroup struct { noCopy noCopy // 64-bit value: high 32 bits are counter, low 32 bits are waiter count. // 64-bit atomic operations require 64-bit alignment, but 32-bit // compilers do not ensure it. So we allocate 12 bytes and then use // the aligned 8 bytes in them as state, and the other 4"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -279,11 +279,11 @@
           <article class="post bg-white">
     
     <header class="post-header">
-      <h1 class="post-title">sync.Mutex 实现原理</h1>
+      <h1 class="post-title">sync.WaitGroup 实现原理</h1>
       
       <div class="post-meta">
-        <time datetime="2019-11-14" class="post-time">
-          2019-11-14
+        <time datetime="2019-11-16" class="post-time">
+          2019-11-16
         </time>
         <div class="post-category">
             <a href="http://www.golangsite.com/categories/go/"> go </a>
@@ -309,29 +309,11 @@
 <li>
 <ul>
 <li><a href="#数据结构">数据结构</a></li>
-<li><a href="#加锁过程">加锁过程</a>
+<li><a href="#接口实现">接口实现</a>
 <ul>
-<li><a href="#加锁-无竞争">加锁, 无竞争</a></li>
-<li><a href="#加锁-被阻塞">加锁, 被阻塞</a></li>
-</ul></li>
-<li><a href="#解锁过程">解锁过程</a>
-<ul>
-<li><a href="#解锁-无阻塞协程">解锁, 无阻塞协程</a></li>
-<li><a href="#解锁-有协程阻塞">解锁, 有协程阻塞</a></li>
-</ul></li>
-<li><a href="#自旋">自旋</a></li>
-<li><a href="#两种模式">两种模式</a>
-<ul>
-<li><a href="#normal-模式">normal 模式</a></li>
-<li><a href="#starvation-模式">starvation 模式</a></li>
-</ul></li>
-<li><a href="#woken">Woken</a></li>
-<li><a href="#读写锁">读写锁</a>
-<ul>
-<li><a href="#写操作锁定">写操作锁定</a></li>
-<li><a href="#写操作解锁">写操作解锁</a></li>
-<li><a href="#读操作锁定">读操作锁定</a></li>
-<li><a href="#读操作释放">读操作释放</a></li>
+<li><a href="#add-delta-int">Add(delta int)</a></li>
+<li><a href="#wait">Wait()</a></li>
+<li><a href="#done">Done()</a></li>
 </ul></li>
 </ul></li>
 </ul>
@@ -346,166 +328,289 @@
 <h2 id="数据结构">数据结构</h2>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
 </span></pre></td>
 <td class="lntd">
-<pre class="chroma">type Mutex struct {
-	state int32 //锁的状态
-	sema  uint32    //信号量
+<pre class="chroma">type WaitGroup struct {
+	noCopy noCopy
+
+	// 64-bit value: high 32 bits are counter, low 32 bits are waiter count.
+	// 64-bit atomic operations require 64-bit alignment, but 32-bit
+	// compilers do not ensure it. So we allocate 12 bytes and then use
+	// the aligned 8 bytes in them as state, and the other 4 as storage
+	// for the sema.
+	state1 [3]uint32
 }</pre></td></tr></table>
 </div>
 </div>
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE2a5a3dfa07d09dd09fc90cdfa0224d7e?ynotemdtimestamp=1573737318675" alt="image" /></p>
-
-<p>state 从低位到高位分为四个部分:<br />
-1. Locked: 是否已经被锁定, 0 未锁定  1 已锁定<br />
-2. Woken: 是否有协程已经被唤醒  0 没有协程唤醒, 1 已有协程被唤醒, 正在加锁过程中<br />
-3. Starving: 是否处于饥饿状态  0 没有饥饿,  1 饥饿状态<br />
-4. Waiter: 阻塞等待锁的协程数量, 根据这个值来判断是否释放 sema</p>
-
-<h2 id="加锁过程">加锁过程</h2>
-
-<h3 id="加锁-无竞争">加锁, 无竞争</h3>
-
-<p>直接修改 Locked 状态为 1</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEb2d90d53fbe0c8296161176d8000affb?ynotemdtimestamp=1573741473732" alt="image" />加锁成功</p>
-
-<h3 id="加锁-被阻塞">加锁, 被阻塞</h3>
-
-<p>Waiter 数量 + 1
-<img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE90b8142c9ad4e65e42c2c06659989a4d?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
-<h2 id="解锁过程">解锁过程</h2>
-
-<h3 id="解锁-无阻塞协程">解锁, 无阻塞协程</h3>
-
-<p>直接修改 Locked 状态为 0</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE702672bb824e4d2a2c13ce169d6ffc84?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
-<h3 id="解锁-有协程阻塞">解锁, 有协程阻塞</h3>
-
-<p>步骤:
-1. 释放锁
-2. 检查 waiter 数量, 如果大于 1, 释放信号量, 唤醒一个被阻塞的协程, 获取锁, 修改 Locked  状态</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEa986f47139d509014b81299ac711996e?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
-<h2 id="自旋">自旋</h2>
-
-<p>协程尝试加锁失败, 不进入阻塞状态, 而是循环检测是否能加锁成功</p>
-
-<p>条件:</p>
-
-<ul>
-<li>自旋次数限制, 一般为 4</li>
-<li>CPU 核心数大于 1</li>
-<li>Process 数量大于 1</li>
-<li>协程调度的可运行队列必须能为空, 否则会延迟协程调度</li>
-</ul>
-
-<p>优势:</p>
-
-<ul>
-<li>充分利用 CPU, 避免协程切换<br /></li>
-</ul>
-
-<p>缺点:</p>
-
-<ul>
-<li>如果每次通过自旋获取锁, 阻塞等待的协程可能会饥饿</li>
-</ul>
-
-<h2 id="两种模式">两种模式</h2>
-
-<h3 id="normal-模式">normal 模式</h3>
-
-<p>默认不自旋, 加锁不成功阻塞协程</p>
-
-<h3 id="starvation-模式">starvation 模式</h3>
-
-<p>处于饥饿模式下, 不会进入自旋过程</p>
-
-<p>因为如果通过自旋获取了锁, 那说明一定是有其他协程释放了锁, 会发送信号量唤醒某个协程, 这个协程尝试锁定时发现锁已经被抢占, 又重新进入阻塞, 不过在阻塞前会判断上次阻塞到本次阻塞如果超过 1ms, 就会把 lock 标记为 starvation 模式</p>
-
-<h2 id="woken">Woken</h2>
-
-<p>用于加锁和解锁通信<br />
-某个协程通过自旋获取到了锁, 把 Woken  标记为 1, 那么释放锁的这个协程就不用再发送信号量了, 避免唤醒其他协程, 又得不到锁</p>
-
-<h2 id="读写锁">读写锁</h2>
+<p>主要提供了下面三个接口:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
 </span></pre></td>
 <td class="lntd">
-<pre class="chroma">type RWMutex struct {
-	w           Mutex  // held if there are pending writers
-	writerSem   uint32 // semaphore for writers to wait for completing readers
-	readerSem   uint32 // semaphore for readers to wait for completing writers
-	readerCount int32  // number of pending readers
-	readerWait  int32  // number of departing readers
+<pre class="chroma">func (wg *WaitGroup) Add(delta int)
+func (wg *WaitGroup) Done()
+func (wg *WaitGroup) Wait()</pre></td></tr></table>
+</div>
+</div>
+<p>state1 是包含三个元素的数字, 其中一个元素用作信号量, 另外两个作为计数器</p>
+
+<p><img src="http://i.caigoubao.cc/626957/waitgroup_01.png" alt="" /></p>
+
+<h2 id="接口实现">接口实现</h2>
+
+<h3 id="add-delta-int">Add(delta int)</h3>
+
+<ul>
+<li>增加 counter 的值</li>
+<li>如果 counter = 0, 释放 waiter 等量的信号量, 将等待的 goroutine 全部唤醒</li>
+
+<li><p>如果 counter &lt; 0, panic</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span><span class="lnt">46
+</span><span class="lnt">47
+</span><span class="lnt">48
+</span><span class="lnt">49
+</span><span class="lnt">50
+</span><span class="lnt">51
+</span><span class="lnt">52
+</span><span class="lnt">53
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (wg *WaitGroup) Add(delta int) {
+	statep, semap := wg.state()
+	if race.Enabled {
+		_ = *statep // trigger nil deref early
+		if delta &lt; 0 {
+			// Synchronize decrements with Wait.
+			race.ReleaseMerge(unsafe.Pointer(wg))
+		}
+		race.Disable()
+		defer race.Enable()
+	}
+	
+	// 把 delta 累加到 counter 中
+	state := atomic.AddUint64(statep, uint64(delta)&lt;&lt;32)
+	v := int32(state &gt;&gt; 32)
+	w := uint32(state)
+	if race.Enabled &amp;&amp; delta &gt; 0 &amp;&amp; v == int32(delta) {
+		// The first increment must be synchronized with Wait.
+		// Need to model this as a read, because there can be
+		// several concurrent wg.counter transitions from 0.
+		race.Read(unsafe.Pointer(semap))
+	}
+	
+	//如果 counter &lt; 0, panic
+	if v &lt; 0 {
+		panic(&#34;sync: negative WaitGroup counter&#34;)
+	}
+	if w != 0 &amp;&amp; delta &gt; 0 &amp;&amp; v == int32(delta) {
+		panic(&#34;sync: WaitGroup misuse: Add called concurrently with Wait&#34;)
+	}
+	
+	//如果 counter &gt; 0, 不用释放信号量
+	//如果 waiter = 0, 说明没有等待者, 也不用释放信号量, 直接退出
+	if v &gt; 0 || w == 0 {
+		return
+	}
+	// This goroutine has set counter to 0 when waiters &gt; 0.
+	// Now there can&#39;t be concurrent mutations of state:
+	// - Adds must not happen concurrently with Wait,
+	// - Wait does not increment waiters if it sees counter == 0.
+	// Still do a cheap sanity check to detect WaitGroup misuse.
+	if *statep != state {
+		panic(&#34;sync: WaitGroup misuse: Add called concurrently with Wait&#34;)
+	}
+	
+
+	// Reset waiters count to 0.
+	//先把 counter 置为 0, 再释放 waiter 个信号量
+	*statep = 0
+	for ; w != 0; w-- {
+		runtime_Semrelease(semap, false)
+	}
+}</pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+
+<h3 id="wait">Wait()</h3>
+
+<ul>
+<li>累加waiter</li>
+
+<li><p>阻塞协程</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span><span class="lnt">36
+</span><span class="lnt">37
+</span><span class="lnt">38
+</span><span class="lnt">39
+</span><span class="lnt">40
+</span><span class="lnt">41
+</span><span class="lnt">42
+</span><span class="lnt">43
+</span><span class="lnt">44
+</span><span class="lnt">45
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (wg *WaitGroup) Wait() {
+	statep, semap := wg.state()
+	if race.Enabled {
+		_ = *statep // trigger nil deref early
+		race.Disable()
+	}
+	for {
+		state := atomic.LoadUint64(statep)
+		v := int32(state &gt;&gt; 32)
+		w := uint32(state)
+		
+		//如果所有协程都执行完毕, 不用阻塞, 直接退出
+		if v == 0 {
+			// Counter is 0, no need to wait.
+			if race.Enabled {
+				race.Enable()
+				race.Acquire(unsafe.Pointer(wg))
+			}
+			return
+		}
+		
+		// Increment waiters count.
+		//使用 cas 累加 waiter 的数量, 失败自旋 
+		if atomic.CompareAndSwapUint64(statep, state, state+1) {
+			if race.Enabled &amp;&amp; w == 0 {
+				// Wait must be synchronized with the first Add.
+				// Need to model this is as a write to race with the read in Add.
+				// As a consequence, can do the write only for the first waiter,
+				// otherwise concurrent Waits will race with each other.
+				race.Write(unsafe.Pointer(semap))
+			}
+			
+			//阻塞, 等待信号量唤醒
+			runtime_Semacquire(semap)
+			if *statep != 0 {
+				panic(&#34;sync: WaitGroup is reused before previous Wait has returned&#34;)
+			}
+			if race.Enabled {
+				race.Enable()
+				race.Acquire(unsafe.Pointer(wg))
+			}
+			return
+		}
+	}
+}</pre></td></tr></table>
+</div>
+</div></li>
+</ul>
+
+<h3 id="done">Done()</h3>
+
+<p>直接调用的 Add() 方法</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func (wg *WaitGroup) Done() {
+	wg.Add(-1)
 }</pre></td></tr></table>
 </div>
 </div>
-<h3 id="写操作锁定">写操作锁定</h3>
-
-<ol>
-<li>获取互斥锁 w</li>
-<li>等待所有读操作完成</li>
-</ol>
-
-<h3 id="写操作解锁">写操作解锁</h3>
-
-<ol>
-<li>唤醒读操作被阻塞的协程</li>
-<li>释放互斥锁</li>
-</ol>
-
-<h3 id="读操作锁定">读操作锁定</h3>
-
-<ol>
-<li>增加读操作计数器 readerCount</li>
-<li>阻塞等待写操作结束</li>
-</ol>
-
-<h3 id="读操作释放">读操作释放</h3>
-
-<ol>
-<li>减少读操作计数器 readerCount</li>
-<li>唤醒写操作阻塞的协程</li>
-</ol>
-
-<p><strong>写操作如何阻塞写操作?</strong></p>
-
-<p>通过互斥锁 w, 后来的写操作获取 w 时会阻塞</p>
-
-<p><strong>写操作如何阻塞读操作?</strong></p>
-
-<p>通过将readerCount变成负值来阻止读操作的<br />
-读操作加锁会把 readerCount++ 之后发现小于 0, 于是知道有写操作在进行, 阻塞</p>
-
-<p><strong>读操作如何阻塞写操作?</strong></p>
-
-<p>readerCount++</p>
-
-<p><strong>如何保证写操作不会被饿死?</strong><br />
-写操作到来时, 把 readerCount 值拷贝到 readerWait中, 用于标记排在写操作前面的读者个数</p>
-
-<p>读操作结束时, 会同时递减 readerCount 和 readerWait, 当 readerWait 为 0 时唤醒写操作</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEb711c63e9b39096f787d1929c22617a3?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
     </div>
 
     
@@ -518,7 +623,7 @@
   <p class="copyright-item">
     <span class="item-title">上次更新</span>
     <span class="item-content">
-      2019-11-14
+      2019-11-16
       
     </span>
   </p>
@@ -539,7 +644,7 @@
       
       <nav class="post-nav">
         
-          <a class="prev" href="/post/memory_gc/">
+          <a class="prev" href="/post/context/">
             
             <i class="iconfont">
               <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
@@ -549,12 +654,12 @@
 </svg>
 
             </i>
-            <span class="prev-text nav-default"> 内存管理</span>
+            <span class="prev-text nav-default">Context 实现原理</span>
             <span class="prev-text nav-mobile">上一篇</span>
           </a>
         
-          <a class="next" href="/post/defer/">
-            <span class="next-text nav-default">defer 实现原理</span>
+          <a class="next" href="/post/select/">
+            <span class="next-text nav-default">select &amp; range 原理</span>
             <span class="prev-text nav-mobile">下一篇</span>
             
             <i class="iconfont">

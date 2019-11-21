@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>sync.Mutex 实现原理 -  开发的套路</title>
+  <title>select &amp; range 原理 -  开发的套路</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="wei.tan" />
-  <meta name="description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被" />
+  <meta name="description" content="select select 语句中每一个 case 定义了一个数据结构, default 也是一种特殊的 case 1 2 3 4 5 6 7 type scase struct { c *hchan // chan elem unsafe.Pointer // 数据缓冲区 kind uint16 //数据类型 pc uintptr // race pc (for race detector / msan) releasetime" />
 
 
 
@@ -34,7 +34,7 @@
 <meta name="generator" content="Hugo 0.59.0" />
 
 
-<link rel="canonical" href="http://www.golangsite.com/post/lock/" />
+<link rel="canonical" href="http://www.golangsite.com/post/select/" />
 
 
 
@@ -58,26 +58,26 @@
 
 
 
-<meta property="og:title" content="sync.Mutex 实现原理" />
-<meta property="og:description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被" />
+<meta property="og:title" content="select &amp; range 原理" />
+<meta property="og:description" content="select select 语句中每一个 case 定义了一个数据结构, default 也是一种特殊的 case 1 2 3 4 5 6 7 type scase struct { c *hchan // chan elem unsafe.Pointer // 数据缓冲区 kind uint16 //数据类型 pc uintptr // race pc (for race detector / msan) releasetime" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://www.golangsite.com/post/lock/" />
-<meta property="article:published_time" content="2019-11-14T22:29:56+08:00" />
-<meta property="article:modified_time" content="2019-11-14T22:29:56+08:00" />
-<meta itemprop="name" content="sync.Mutex 实现原理">
-<meta itemprop="description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被">
+<meta property="og:url" content="http://www.golangsite.com/post/select/" />
+<meta property="article:published_time" content="2019-11-16T15:29:07+08:00" />
+<meta property="article:modified_time" content="2019-11-16T15:29:07+08:00" />
+<meta itemprop="name" content="select &amp; range 原理">
+<meta itemprop="description" content="select select 语句中每一个 case 定义了一个数据结构, default 也是一种特殊的 case 1 2 3 4 5 6 7 type scase struct { c *hchan // chan elem unsafe.Pointer // 数据缓冲区 kind uint16 //数据类型 pc uintptr // race pc (for race detector / msan) releasetime">
 
 
-<meta itemprop="datePublished" content="2019-11-14T22:29:56&#43;08:00" />
-<meta itemprop="dateModified" content="2019-11-14T22:29:56&#43;08:00" />
-<meta itemprop="wordCount" content="917">
+<meta itemprop="datePublished" content="2019-11-16T15:29:07&#43;08:00" />
+<meta itemprop="dateModified" content="2019-11-16T15:29:07&#43;08:00" />
+<meta itemprop="wordCount" content="456">
 
 
 
 <meta itemprop="keywords" content="" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="sync.Mutex 实现原理"/>
-<meta name="twitter:description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被"/>
+<meta name="twitter:title" content="select &amp; range 原理"/>
+<meta name="twitter:description" content="select select 语句中每一个 case 定义了一个数据结构, default 也是一种特殊的 case 1 2 3 4 5 6 7 type scase struct { c *hchan // chan elem unsafe.Pointer // 数据缓冲区 kind uint16 //数据类型 pc uintptr // race pc (for race detector / msan) releasetime"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -279,11 +279,11 @@
           <article class="post bg-white">
     
     <header class="post-header">
-      <h1 class="post-title">sync.Mutex 实现原理</h1>
+      <h1 class="post-title">select &amp; range 原理</h1>
       
       <div class="post-meta">
-        <time datetime="2019-11-14" class="post-time">
-          2019-11-14
+        <time datetime="2019-11-16" class="post-time">
+          2019-11-16
         </time>
         <div class="post-category">
             <a href="http://www.golangsite.com/categories/go/"> go </a>
@@ -308,31 +308,8 @@
 <ul>
 <li>
 <ul>
-<li><a href="#数据结构">数据结构</a></li>
-<li><a href="#加锁过程">加锁过程</a>
-<ul>
-<li><a href="#加锁-无竞争">加锁, 无竞争</a></li>
-<li><a href="#加锁-被阻塞">加锁, 被阻塞</a></li>
-</ul></li>
-<li><a href="#解锁过程">解锁过程</a>
-<ul>
-<li><a href="#解锁-无阻塞协程">解锁, 无阻塞协程</a></li>
-<li><a href="#解锁-有协程阻塞">解锁, 有协程阻塞</a></li>
-</ul></li>
-<li><a href="#自旋">自旋</a></li>
-<li><a href="#两种模式">两种模式</a>
-<ul>
-<li><a href="#normal-模式">normal 模式</a></li>
-<li><a href="#starvation-模式">starvation 模式</a></li>
-</ul></li>
-<li><a href="#woken">Woken</a></li>
-<li><a href="#读写锁">读写锁</a>
-<ul>
-<li><a href="#写操作锁定">写操作锁定</a></li>
-<li><a href="#写操作解锁">写操作解锁</a></li>
-<li><a href="#读操作锁定">读操作锁定</a></li>
-<li><a href="#读操作释放">读操作释放</a></li>
-</ul></li>
+<li><a href="#select">select</a></li>
+<li><a href="#range">range</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -343,101 +320,9 @@
     <div class="post-content">
       
 
-<h2 id="数据结构">数据结构</h2>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre class="chroma"><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span></pre></td>
-<td class="lntd">
-<pre class="chroma">type Mutex struct {
-	state int32 //锁的状态
-	sema  uint32    //信号量
-}</pre></td></tr></table>
-</div>
-</div>
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE2a5a3dfa07d09dd09fc90cdfa0224d7e?ynotemdtimestamp=1573737318675" alt="image" /></p>
+<h2 id="select">select</h2>
 
-<p>state 从低位到高位分为四个部分:<br />
-1. Locked: 是否已经被锁定, 0 未锁定  1 已锁定<br />
-2. Woken: 是否有协程已经被唤醒  0 没有协程唤醒, 1 已有协程被唤醒, 正在加锁过程中<br />
-3. Starving: 是否处于饥饿状态  0 没有饥饿,  1 饥饿状态<br />
-4. Waiter: 阻塞等待锁的协程数量, 根据这个值来判断是否释放 sema</p>
-
-<h2 id="加锁过程">加锁过程</h2>
-
-<h3 id="加锁-无竞争">加锁, 无竞争</h3>
-
-<p>直接修改 Locked 状态为 1</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEb2d90d53fbe0c8296161176d8000affb?ynotemdtimestamp=1573741473732" alt="image" />加锁成功</p>
-
-<h3 id="加锁-被阻塞">加锁, 被阻塞</h3>
-
-<p>Waiter 数量 + 1
-<img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE90b8142c9ad4e65e42c2c06659989a4d?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
-<h2 id="解锁过程">解锁过程</h2>
-
-<h3 id="解锁-无阻塞协程">解锁, 无阻塞协程</h3>
-
-<p>直接修改 Locked 状态为 0</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE702672bb824e4d2a2c13ce169d6ffc84?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
-<h3 id="解锁-有协程阻塞">解锁, 有协程阻塞</h3>
-
-<p>步骤:
-1. 释放锁
-2. 检查 waiter 数量, 如果大于 1, 释放信号量, 唤醒一个被阻塞的协程, 获取锁, 修改 Locked  状态</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEa986f47139d509014b81299ac711996e?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
-<h2 id="自旋">自旋</h2>
-
-<p>协程尝试加锁失败, 不进入阻塞状态, 而是循环检测是否能加锁成功</p>
-
-<p>条件:</p>
-
-<ul>
-<li>自旋次数限制, 一般为 4</li>
-<li>CPU 核心数大于 1</li>
-<li>Process 数量大于 1</li>
-<li>协程调度的可运行队列必须能为空, 否则会延迟协程调度</li>
-</ul>
-
-<p>优势:</p>
-
-<ul>
-<li>充分利用 CPU, 避免协程切换<br /></li>
-</ul>
-
-<p>缺点:</p>
-
-<ul>
-<li>如果每次通过自旋获取锁, 阻塞等待的协程可能会饥饿</li>
-</ul>
-
-<h2 id="两种模式">两种模式</h2>
-
-<h3 id="normal-模式">normal 模式</h3>
-
-<p>默认不自旋, 加锁不成功阻塞协程</p>
-
-<h3 id="starvation-模式">starvation 模式</h3>
-
-<p>处于饥饿模式下, 不会进入自旋过程</p>
-
-<p>因为如果通过自旋获取了锁, 那说明一定是有其他协程释放了锁, 会发送信号量唤醒某个协程, 这个协程尝试锁定时发现锁已经被抢占, 又重新进入阻塞, 不过在阻塞前会判断上次阻塞到本次阻塞如果超过 1ms, 就会把 lock 标记为 starvation 模式</p>
-
-<h2 id="woken">Woken</h2>
-
-<p>用于加锁和解锁通信<br />
-某个协程通过自旋获取到了锁, 把 Woken  标记为 1, 那么释放锁的这个协程就不用再发送信号量了, 避免唤醒其他协程, 又得不到锁</p>
-
-<h2 id="读写锁">读写锁</h2>
+<p>select 语句中每一个 case 定义了一个数据结构, default 也是一种特殊的 case</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><span class="lnt">1
@@ -449,63 +334,85 @@
 </span><span class="lnt">7
 </span></pre></td>
 <td class="lntd">
-<pre class="chroma">type RWMutex struct {
-	w           Mutex  // held if there are pending writers
-	writerSem   uint32 // semaphore for writers to wait for completing readers
-	readerSem   uint32 // semaphore for readers to wait for completing writers
-	readerCount int32  // number of pending readers
-	readerWait  int32  // number of departing readers
+<pre class="chroma">type scase struct {
+	c           *hchan         // chan
+	elem        unsafe.Pointer // 数据缓冲区
+	kind        uint16  //数据类型
+	pc          uintptr // race pc (for race detector / msan)
+	releasetime int64
 }</pre></td></tr></table>
 </div>
 </div>
-<h3 id="写操作锁定">写操作锁定</h3>
+<p>kind 定义为常量, 一共有三种类型:</p>
 
-<ol>
-<li>获取互斥锁 w</li>
-<li>等待所有读操作完成</li>
-</ol>
+<ul>
+<li>读channel中的数据<br /></li>
+<li>写入数据到channel中<br /></li>
+<li>默认<br /></li>
+</ul>
 
-<h3 id="写操作解锁">写操作解锁</h3>
+<p>elem 是数据缓冲区, 读写 channel 的数据都是操作它</p>
 
-<ol>
-<li>唤醒读操作被阻塞的协程</li>
-<li>释放互斥锁</li>
-</ol>
+<p>select 实现逻辑:</p>
 
-<h3 id="读操作锁定">读操作锁定</h3>
+<p>1.锁住所有 case 语句中的 channel<br />
+2.按照随机算法检测某个 channel 是否 ready
+- 如果可读: 则读取数据, 然后解锁所有 channel
+- 如果可写: 则写入数据, 然后解锁所有 channel
+- 如果没有 ready, 则解锁所有 channel</p>
 
-<ol>
-<li>增加读操作计数器 readerCount</li>
-<li>阻塞等待写操作结束</li>
-</ol>
+<p>3.如果当前没有 channel ready, 并且没有 default
+- 将当前协程加入所有 channel 的等待队列
+- 当前协程转入阻塞状态, 等待被唤醒</p>
 
-<h3 id="读操作释放">读操作释放</h3>
+<p>4.唤醒后返回 channel 对应的 case
+- 读操作: 解锁所有 channel
+- 写操作: 解锁所有 channel</p>
 
-<ol>
-<li>减少读操作计数器 readerCount</li>
-<li>唤醒写操作阻塞的协程</li>
-</ol>
+<p>对于读 channel 的 case, 一定要判断 channel 是读取成功, 因为如果channel关闭了也是可以读取的</p>
 
-<p><strong>写操作如何阻塞写操作?</strong></p>
+<h2 id="range">range</h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func main() {
+    v := []int{1, 2, 3}
+    for i:= range v {
+        v = append(v, i)
+    }
+}</pre></td></tr></table>
+</div>
+</div>
+<p><strong>结论</strong>: 能够正常结束, 循环前已经确定好了次数</p>
 
-<p>通过互斥锁 w, 后来的写操作获取 w 时会阻塞</p>
-
-<p><strong>写操作如何阻塞读操作?</strong></p>
-
-<p>通过将readerCount变成负值来阻止读操作的<br />
-读操作加锁会把 readerCount++ 之后发现小于 0, 于是知道有写操作在进行, 阻塞</p>
-
-<p><strong>读操作如何阻塞写操作?</strong></p>
-
-<p>readerCount++</p>
-
-<p><strong>如何保证写操作不会被饿死?</strong><br />
-写操作到来时, 把 readerCount 值拷贝到 readerWait中, 用于标记排在写操作前面的读者个数</p>
-
-<p>读操作结束时, 会同时递减 readerCount 和 readerWait, 当 readerWait 为 0 时唤醒写操作</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEb711c63e9b39096f787d1929c22617a3?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
+<p>不同类型实现细节上不一样, 总体来说就是 for 循环结构</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">// Arrange to do a loop appropriate for the type.  We will produce
+//   for INIT ; COND ; POST {
+//           ITER_INIT
+//           INDEX = INDEX_TEMP
+//           VALUE = VALUE_TEMP // If there is a value
+//           original statements
+//   }</pre></td></tr></table>
+</div>
+</div>
     </div>
 
     
@@ -518,7 +425,7 @@
   <p class="copyright-item">
     <span class="item-title">上次更新</span>
     <span class="item-content">
-      2019-11-14
+      2019-11-16
       
     </span>
   </p>
@@ -539,7 +446,7 @@
       
       <nav class="post-nav">
         
-          <a class="prev" href="/post/memory_gc/">
+          <a class="prev" href="/post/waitgroup/">
             
             <i class="iconfont">
               <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
@@ -549,12 +456,12 @@
 </svg>
 
             </i>
-            <span class="prev-text nav-default"> 内存管理</span>
+            <span class="prev-text nav-default">sync.WaitGroup 实现原理</span>
             <span class="prev-text nav-mobile">上一篇</span>
           </a>
         
-          <a class="next" href="/post/defer/">
-            <span class="next-text nav-default">defer 实现原理</span>
+          <a class="next" href="/post/memory_gc/">
+            <span class="next-text nav-default"> 内存管理</span>
             <span class="prev-text nav-mobile">下一篇</span>
             
             <i class="iconfont">

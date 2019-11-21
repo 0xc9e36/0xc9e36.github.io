@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>sync.Mutex 实现原理 -  开发的套路</title>
+  <title> 内存管理 -  开发的套路</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="wei.tan" />
-  <meta name="description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被" />
+  <meta name="description" content="一、内存分配 go 语言实现了内存管理, 避免每次操作内存都通过系统调用实现, 减少了开销, 同时减轻了程序员的心智负担 go 内存分配原理和 tcmalloc 类似 , 每个线程" />
 
 
 
@@ -34,7 +34,7 @@
 <meta name="generator" content="Hugo 0.59.0" />
 
 
-<link rel="canonical" href="http://www.golangsite.com/post/lock/" />
+<link rel="canonical" href="http://www.golangsite.com/post/memory_gc/" />
 
 
 
@@ -58,26 +58,26 @@
 
 
 
-<meta property="og:title" content="sync.Mutex 实现原理" />
-<meta property="og:description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被" />
+<meta property="og:title" content=" 内存管理" />
+<meta property="og:description" content="一、内存分配 go 语言实现了内存管理, 避免每次操作内存都通过系统调用实现, 减少了开销, 同时减轻了程序员的心智负担 go 内存分配原理和 tcmalloc 类似 , 每个线程" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="http://www.golangsite.com/post/lock/" />
-<meta property="article:published_time" content="2019-11-14T22:29:56+08:00" />
-<meta property="article:modified_time" content="2019-11-14T22:29:56+08:00" />
-<meta itemprop="name" content="sync.Mutex 实现原理">
-<meta itemprop="description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被">
+<meta property="og:url" content="http://www.golangsite.com/post/memory_gc/" />
+<meta property="article:published_time" content="2019-11-16T12:42:50+08:00" />
+<meta property="article:modified_time" content="2019-11-16T12:42:50+08:00" />
+<meta itemprop="name" content=" 内存管理">
+<meta itemprop="description" content="一、内存分配 go 语言实现了内存管理, 避免每次操作内存都通过系统调用实现, 减少了开销, 同时减轻了程序员的心智负担 go 内存分配原理和 tcmalloc 类似 , 每个线程">
 
 
-<meta itemprop="datePublished" content="2019-11-14T22:29:56&#43;08:00" />
-<meta itemprop="dateModified" content="2019-11-14T22:29:56&#43;08:00" />
-<meta itemprop="wordCount" content="917">
+<meta itemprop="datePublished" content="2019-11-16T12:42:50&#43;08:00" />
+<meta itemprop="dateModified" content="2019-11-16T12:42:50&#43;08:00" />
+<meta itemprop="wordCount" content="1229">
 
 
 
 <meta itemprop="keywords" content="" />
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content="sync.Mutex 实现原理"/>
-<meta name="twitter:description" content="数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被"/>
+<meta name="twitter:title" content=" 内存管理"/>
+<meta name="twitter:description" content="一、内存分配 go 语言实现了内存管理, 避免每次操作内存都通过系统调用实现, 减少了开销, 同时减轻了程序员的心智负担 go 内存分配原理和 tcmalloc 类似 , 每个线程"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -279,11 +279,11 @@
           <article class="post bg-white">
     
     <header class="post-header">
-      <h1 class="post-title">sync.Mutex 实现原理</h1>
+      <h1 class="post-title"> 内存管理</h1>
       
       <div class="post-meta">
-        <time datetime="2019-11-14" class="post-time">
-          2019-11-14
+        <time datetime="2019-11-16" class="post-time">
+          2019-11-16
         </time>
         <div class="post-category">
             <a href="http://www.golangsite.com/categories/go/"> go </a>
@@ -308,31 +308,19 @@
 <ul>
 <li>
 <ul>
-<li><a href="#数据结构">数据结构</a></li>
-<li><a href="#加锁过程">加锁过程</a>
+<li><a href="#一-内存分配">一、内存分配</a>
 <ul>
-<li><a href="#加锁-无竞争">加锁, 无竞争</a></li>
-<li><a href="#加锁-被阻塞">加锁, 被阻塞</a></li>
+<li><a href="#本地缓存">本地缓存</a></li>
+<li><a href="#全局缓存">全局缓存</a></li>
+<li><a href="#大块内存申请">大块内存申请</a></li>
 </ul></li>
-<li><a href="#解锁过程">解锁过程</a>
+<li><a href="#二-垃圾回收">二、垃圾回收</a>
 <ul>
-<li><a href="#解锁-无阻塞协程">解锁, 无阻塞协程</a></li>
-<li><a href="#解锁-有协程阻塞">解锁, 有协程阻塞</a></li>
+<li><a href="#go-垃圾回收">go 垃圾回收</a></li>
+<li><a href="#stw-优化">STW 优化</a></li>
+<li><a href="#垃圾回收时机">垃圾回收时机</a></li>
 </ul></li>
-<li><a href="#自旋">自旋</a></li>
-<li><a href="#两种模式">两种模式</a>
-<ul>
-<li><a href="#normal-模式">normal 模式</a></li>
-<li><a href="#starvation-模式">starvation 模式</a></li>
-</ul></li>
-<li><a href="#woken">Woken</a></li>
-<li><a href="#读写锁">读写锁</a>
-<ul>
-<li><a href="#写操作锁定">写操作锁定</a></li>
-<li><a href="#写操作解锁">写操作解锁</a></li>
-<li><a href="#读操作锁定">读操作锁定</a></li>
-<li><a href="#读操作释放">读操作释放</a></li>
-</ul></li>
+<li><a href="#三-逃逸分析">三、逃逸分析</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -343,101 +331,145 @@
     <div class="post-content">
       
 
-<h2 id="数据结构">数据结构</h2>
+<h2 id="一-内存分配">一、内存分配</h2>
+
+<p>go 语言实现了内存管理, 避免每次操作内存都通过系统调用实现, 减少了开销, 同时减轻了程序员的心智负担</p>
+
+<p>go 内存分配原理和 tcmalloc 类似 , 每个线程单独管理自身内存,不足时向全局内存池申请</p>
+
+<p>go 进程启动时, 向系统申请一大块内存(虚拟地址空间), 划分为:</p>
+
+<ul>
+<li>arena: 堆区, 为应用分配内存, 由多个 page 组成, 每个 page 大小为 8 KB</li>
+<li>spans: 存放多个 span 指针, 每个 span 管理一个或者多个 page</li>
+<li>bitmap: 通过 arena 计算出来, 主要是GC使用</li>
+</ul>
+
+<p><img src="http://i.caigoubao.cc/626957/mem01.png" alt="image" /></p>
+
+<h3 id="本地缓存">本地缓存</h3>
+
+<p>对于32KB 以下小内存, 直接从线程缓存 mcache 中申请分配, 所以当 G 运行时, 会从当前 M 的 mcache 申请内存</p>
+
+<p>每个线程的 mcache 管理着一系列 mspan, mspan 是一条链表结构, 把 32KB 以内的内存大小定义为 67 个等级, 切割成不同大小的对象, 程序申请内存时, 向上取整到最接近的对象分配</p>
+
+<h3 id="全局缓存">全局缓存</h3>
+
+<p>mcentral, 管理着一系列 mspan, 当用户从 mcache 获取不到内存时, 就会从 mcentral 申请 mspan, 然后切割成 mcache 需要的大小</p>
+
+<p>mcentral 包含两种链表, 一个是空闲链表, 一个是已分配链表, 当 GC 时, 已分配链表元素又可以重新加入空闲链表<br />
+当mcentral内存不足时, 从 mheap 去申请内存到 mcentral 中<br />
+堆区在必要时也可以向操作系统申请内存<br />
+因为 mcentral 是全局共享的, 所以对它操作需要加锁</p>
+
+<h3 id="大块内存申请">大块内存申请</h3>
+
+<p>直接从 mheap 上申请, 最小为 page 的整数倍</p>
+
+<p><img src="http://i.caigoubao.cc/626957/page_234%20(1).png" alt="image" /></p>
+
+<h2 id="二-垃圾回收">二、垃圾回收</h2>
+
+<p>主流的 GC 算法:</p>
+
+<ol>
+<li>引用计数</li>
+<li>优点: 对象回收及时, 不会出现 OOM</li>
+
+<li><p>缺点: 循环引用问题, 需要维护引用计数器</p></li>
+
+<li><p>标记-清除<br />
+从根节点遍历所有对象, 将没有被引用的对象标记, 最终删除</p></li>
+</ol>
+
+<ul>
+<li>优点：解决了引用计数的问题</li>
+<li>缺点: STW 停顿
+<br /></li>
+</ul>
+
+<ol>
+<li>分代收集
+按照生命周期划分不同的区域, 每个区域采用不同的回收机制和频率<br /></li>
+<li>优点: 回收性能高</li>
+<li>缺点: 实现复杂</li>
+</ol>
+
+<h3 id="go-垃圾回收">go 垃圾回收</h3>
+
+<p>三色标记法, 分别代表垃圾对象的三种状态, 简单描述下原理:</p>
+
+<p>root 对象为栈上面的临时变量 a, b, 它们分别引用了堆上面的内存 A, B, B 又引用了 D</p>
+
+<p>开始执行 GC 前, 对象都为白色状态</p>
+
+<p><img src="http://i.caigoubao.cc/626957/gc_01.png" alt="image" /></p>
+
+<p>执行 GC 时, 先扫描根对象 a, b, 发现分别引用了 A, B, 于是把 A, B 加入灰色对象</p>
+
+<p><img src="http://i.caigoubao.cc/626957/gc_02.png" alt="image" /></p>
+
+<p>接着把 A, B 作为根节点, 继续扫描它们引用的对象, 发现 D ,
+于是把 D 也加入灰色对象, 同时 A, B 扫描完成, 加入黑色对象
+<img src="http://i.caigoubao.cc/626957/gc_08.png" alt="image" /></p>
+
+<p>继续以 D 作为 root 分析, 发现没有引用其他对象, D 转为黑色对象, 扫描结束</p>
+
+<p><img src="http://i.caigoubao.cc/626957/gc_04.png" alt="image" /></p>
+
+<p>最后, 黑色对象保留, 白色对象被回收</p>
+
+<h3 id="stw-优化">STW 优化</h3>
+
+<p>垃圾回收过程中, 为了防止干扰, 会停止程序执行, 只做 GC, 这个停顿时间称为 STW</p>
+
+<p><strong>写屏障</strong></p>
+
+<p>写屏障类似一种开关, 在 GC 过程中开启后, 会把指针传递标记, 本轮不回收, 下次 GC 再确定</p>
+
+<p>GC 过程中新创建的结构体也不会被回收, 不过这不是写屏障实现的</p>
+
+<p><strong>辅助 GC</strong></p>
+
+<p>为防止内存分配过快, goroutine 会参与一部分 GC 工作</p>
+
+<h3 id="垃圾回收时机">垃圾回收时机</h3>
+
+<ol>
+<li>达到内存分配量阈值, 触发 GC</li>
+<li>定期触发, 最长 2 分钟</li>
+<li>手动执行 <code>runtime.GC()</code></li>
+</ol>
+
+<h2 id="三-逃逸分析">三、逃逸分析</h2>
+
+<p>如果变量的作用范围只在函数内部, 则会优先放入栈中<br />
+如果超出函数内部, 则放入堆中, 因为栈内存在函数结束就会被回收, 变量也会被 GC, 导致引用失效</p>
+
+<p>编译期间确定</p>
+
+<p>逃逸场景:</p>
+
+<p>1.局部变量通过指针返回</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
 </span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
 </span></pre></td>
 <td class="lntd">
-<pre class="chroma">type Mutex struct {
-	state int32 //锁的状态
-	sema  uint32    //信号量
-}</pre></td></tr></table>
+<pre class="chroma"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kd">func</span> <span class="nf">foo</span><span class="p">()</span> <span class="o">*</span><span class="kt">int</span> <span class="p">{</span>
+	<span class="nx">i</span> <span class="o">:=</span> <span class="mi">1</span>
+	<span class="k">return</span> <span class="o">&amp;</span><span class="nx">i</span>
+<span class="p">}</span></pre></td></tr></table>
 </div>
 </div>
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE2a5a3dfa07d09dd09fc90cdfa0224d7e?ynotemdtimestamp=1573737318675" alt="image" /></p>
-
-<p>state 从低位到高位分为四个部分:<br />
-1. Locked: 是否已经被锁定, 0 未锁定  1 已锁定<br />
-2. Woken: 是否有协程已经被唤醒  0 没有协程唤醒, 1 已有协程被唤醒, 正在加锁过程中<br />
-3. Starving: 是否处于饥饿状态  0 没有饥饿,  1 饥饿状态<br />
-4. Waiter: 阻塞等待锁的协程数量, 根据这个值来判断是否释放 sema</p>
-
-<h2 id="加锁过程">加锁过程</h2>
-
-<h3 id="加锁-无竞争">加锁, 无竞争</h3>
-
-<p>直接修改 Locked 状态为 1</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEb2d90d53fbe0c8296161176d8000affb?ynotemdtimestamp=1573741473732" alt="image" />加锁成功</p>
-
-<h3 id="加锁-被阻塞">加锁, 被阻塞</h3>
-
-<p>Waiter 数量 + 1
-<img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE90b8142c9ad4e65e42c2c06659989a4d?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
-<h2 id="解锁过程">解锁过程</h2>
-
-<h3 id="解锁-无阻塞协程">解锁, 无阻塞协程</h3>
-
-<p>直接修改 Locked 状态为 0</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE702672bb824e4d2a2c13ce169d6ffc84?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
-<h3 id="解锁-有协程阻塞">解锁, 有协程阻塞</h3>
-
-<p>步骤:
-1. 释放锁
-2. 检查 waiter 数量, 如果大于 1, 释放信号量, 唤醒一个被阻塞的协程, 获取锁, 修改 Locked  状态</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEa986f47139d509014b81299ac711996e?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
-<h2 id="自旋">自旋</h2>
-
-<p>协程尝试加锁失败, 不进入阻塞状态, 而是循环检测是否能加锁成功</p>
-
-<p>条件:</p>
-
-<ul>
-<li>自旋次数限制, 一般为 4</li>
-<li>CPU 核心数大于 1</li>
-<li>Process 数量大于 1</li>
-<li>协程调度的可运行队列必须能为空, 否则会延迟协程调度</li>
-</ul>
-
-<p>优势:</p>
-
-<ul>
-<li>充分利用 CPU, 避免协程切换<br /></li>
-</ul>
-
-<p>缺点:</p>
-
-<ul>
-<li>如果每次通过自旋获取锁, 阻塞等待的协程可能会饥饿</li>
-</ul>
-
-<h2 id="两种模式">两种模式</h2>
-
-<h3 id="normal-模式">normal 模式</h3>
-
-<p>默认不自旋, 加锁不成功阻塞协程</p>
-
-<h3 id="starvation-模式">starvation 模式</h3>
-
-<p>处于饥饿模式下, 不会进入自旋过程</p>
-
-<p>因为如果通过自旋获取了锁, 那说明一定是有其他协程释放了锁, 会发送信号量唤醒某个协程, 这个协程尝试锁定时发现锁已经被抢占, 又重新进入阻塞, 不过在阻塞前会判断上次阻塞到本次阻塞如果超过 1ms, 就会把 lock 标记为 starvation 模式</p>
-
-<h2 id="woken">Woken</h2>
-
-<p>用于加锁和解锁通信<br />
-某个协程通过自旋获取到了锁, 把 Woken  标记为 1, 那么释放锁的这个协程就不用再发送信号量了, 避免唤醒其他协程, 又得不到锁</p>
-
-<h2 id="读写锁">读写锁</h2>
+<p>2.栈空间不足</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><span class="lnt">1
@@ -449,63 +481,59 @@
 </span><span class="lnt">7
 </span></pre></td>
 <td class="lntd">
-<pre class="chroma">type RWMutex struct {
-	w           Mutex  // held if there are pending writers
-	writerSem   uint32 // semaphore for writers to wait for completing readers
-	readerSem   uint32 // semaphore for readers to wait for completing writers
-	readerCount int32  // number of pending readers
-	readerWait  int32  // number of departing readers
+<pre class="chroma">func Slice() {
+	s := make([]int, 1000, 1000)
+
+	for index, _ := range s {
+		s[index] = index
+	}
 }</pre></td></tr></table>
 </div>
 </div>
-<h3 id="写操作锁定">写操作锁定</h3>
+<p>3.动态类型逃逸</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma"><span class="kn">package</span> <span class="nx">main</span>
 
-<ol>
-<li>获取互斥锁 w</li>
-<li>等待所有读操作完成</li>
-</ol>
+<span class="kn">import</span> <span class="s">&#34;fmt&#34;</span>
 
-<h3 id="写操作解锁">写操作解锁</h3>
-
-<ol>
-<li>唤醒读操作被阻塞的协程</li>
-<li>释放互斥锁</li>
-</ol>
-
-<h3 id="读操作锁定">读操作锁定</h3>
-
-<ol>
-<li>增加读操作计数器 readerCount</li>
-<li>阻塞等待写操作结束</li>
-</ol>
-
-<h3 id="读操作释放">读操作释放</h3>
-
-<ol>
-<li>减少读操作计数器 readerCount</li>
-<li>唤醒写操作阻塞的协程</li>
-</ol>
-
-<p><strong>写操作如何阻塞写操作?</strong></p>
-
-<p>通过互斥锁 w, 后来的写操作获取 w 时会阻塞</p>
-
-<p><strong>写操作如何阻塞读操作?</strong></p>
-
-<p>通过将readerCount变成负值来阻止读操作的<br />
-读操作加锁会把 readerCount++ 之后发现小于 0, 于是知道有写操作在进行, 阻塞</p>
-
-<p><strong>读操作如何阻塞写操作?</strong></p>
-
-<p>readerCount++</p>
-
-<p><strong>如何保证写操作不会被饿死?</strong><br />
-写操作到来时, 把 readerCount 值拷贝到 readerWait中, 用于标记排在写操作前面的读者个数</p>
-
-<p>读操作结束时, 会同时递减 readerCount 和 readerWait, 当 readerWait 为 0 时唤醒写操作</p>
-
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEb711c63e9b39096f787d1929c22617a3?ynotemdtimestamp=1573741473732" alt="image" /></p>
-
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nx">s</span> <span class="o">:=</span> <span class="s">&#34;Escape&#34;</span>
+	<span class="nx">fmt</span><span class="p">.</span><span class="nf">Println</span><span class="p">(</span><span class="nx">s</span><span class="p">)</span>
+<span class="p">}</span></pre></td></tr></table>
+</div>
+</div>
+<p>4.闭包引用</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func Fibonacci() func() int {
+    a, b := 0, 1
+    return func() int {
+        a, b = b, a+b
+        return a
+    }
+}</pre></td></tr></table>
+</div>
+</div>
     </div>
 
     
@@ -518,7 +546,7 @@
   <p class="copyright-item">
     <span class="item-title">上次更新</span>
     <span class="item-content">
-      2019-11-14
+      2019-11-16
       
     </span>
   </p>
@@ -539,7 +567,7 @@
       
       <nav class="post-nav">
         
-          <a class="prev" href="/post/memory_gc/">
+          <a class="prev" href="/post/select/">
             
             <i class="iconfont">
               <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
@@ -549,12 +577,12 @@
 </svg>
 
             </i>
-            <span class="prev-text nav-default"> 内存管理</span>
+            <span class="prev-text nav-default">select &amp; range 原理</span>
             <span class="prev-text nav-mobile">上一篇</span>
           </a>
         
-          <a class="next" href="/post/defer/">
-            <span class="next-text nav-default">defer 实现原理</span>
+          <a class="next" href="/post/lock/">
+            <span class="next-text nav-default">sync.Mutex 实现原理</span>
             <span class="prev-text nav-mobile">下一篇</span>
             
             <i class="iconfont">

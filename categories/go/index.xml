@@ -6,10 +6,55 @@
     <description>Recent content in go on  开发的套路</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 14 Nov 2019 22:29:56 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 17 Nov 2019 10:46:41 +0800</lastBuildDate>
     
 	<atom:link href="http://www.golangsite.com/categories/go/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title> 定时器实现原理</title>
+      <link>http://www.golangsite.com/post/timer/</link>
+      <pubDate>Sun, 17 Nov 2019 10:46:41 +0800</pubDate>
+      
+      <guid>http://www.golangsite.com/post/timer/</guid>
+      <description>timer 1 2 3 4 5 6 type Timer struct { //channel, 面向应用层 C &amp;lt;-chan Time //系统定时器, 面向底层实现 r runtimeTimer } 实现原理: 一个进程中多个 timer 由同一个系统协程来管理, 系统协程把每一个</description>
+    </item>
+    
+    <item>
+      <title>Context 实现原理</title>
+      <link>http://www.golangsite.com/post/context/</link>
+      <pubDate>Sat, 16 Nov 2019 18:00:09 +0800</pubDate>
+      
+      <guid>http://www.golangsite.com/post/context/</guid>
+      <description>接口定义 1 2 3 4 5 6 7 8 9 10 11 12 13 14 type Context interface { //返回 deadline 和是否设置了 deadline Deadline() (deadline time.Time, ok bool) //结束 channel Done() &amp;lt;-chan struct{} //channel 被关闭的原因 Err() error //用在多个 context 直接传递消息 Value(key</description>
+    </item>
+    
+    <item>
+      <title>sync.WaitGroup 实现原理</title>
+      <link>http://www.golangsite.com/post/waitgroup/</link>
+      <pubDate>Sat, 16 Nov 2019 16:09:23 +0800</pubDate>
+      
+      <guid>http://www.golangsite.com/post/waitgroup/</guid>
+      <description>数据结构 1 2 3 4 5 6 7 8 9 10 type WaitGroup struct { noCopy noCopy // 64-bit value: high 32 bits are counter, low 32 bits are waiter count. // 64-bit atomic operations require 64-bit alignment, but 32-bit // compilers do not ensure it. So we allocate 12 bytes and then use // the aligned 8 bytes in them as state, and the other 4</description>
+    </item>
+    
+    <item>
+      <title>select &amp; range 原理</title>
+      <link>http://www.golangsite.com/post/select/</link>
+      <pubDate>Sat, 16 Nov 2019 15:29:07 +0800</pubDate>
+      
+      <guid>http://www.golangsite.com/post/select/</guid>
+      <description>select select 语句中每一个 case 定义了一个数据结构, default 也是一种特殊的 case 1 2 3 4 5 6 7 type scase struct { c *hchan // chan elem unsafe.Pointer // 数据缓冲区 kind uint16 //数据类型 pc uintptr // race pc (for race detector / msan) releasetime</description>
+    </item>
+    
+    <item>
+      <title> 内存管理</title>
+      <link>http://www.golangsite.com/post/memory_gc/</link>
+      <pubDate>Sat, 16 Nov 2019 12:42:50 +0800</pubDate>
+      
+      <guid>http://www.golangsite.com/post/memory_gc/</guid>
+      <description>一、内存分配 go 语言实现了内存管理, 避免每次操作内存都通过系统调用实现, 减少了开销, 同时减轻了程序员的心智负担 go 内存分配原理和 tcmalloc 类似 , 每个线程</description>
+    </item>
     
     <item>
       <title>sync.Mutex 实现原理</title>
@@ -26,7 +71,7 @@
       <pubDate>Wed, 13 Nov 2019 22:40:54 +0800</pubDate>
       
       <guid>http://www.golangsite.com/post/defer/</guid>
-      <description>defer 规则 1.延迟函数的参数在defer语句出现时就已经确定下来了 1 2 3 4 5 6 func foo() { i := 0 defer fmt.Println(i) i++ return } 2.延迟函数执行按后进先出顺序执行，即先出现</description>
+      <description>defer 规则 1. 延迟函数的参数在defer语句出现时就已经确定下来了 1 2 3 4 5 6 7 func foo() { i := 0 //输出 1 defer fmt.Println(i) i++ return } 2. 延迟函数执行按后进先出顺序执行，</description>
     </item>
     
     <item>
