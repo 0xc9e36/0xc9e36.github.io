@@ -70,7 +70,7 @@
 
 <meta itemprop="datePublished" content="2019-11-16T15:29:07&#43;08:00" />
 <meta itemprop="dateModified" content="2019-11-16T15:29:07&#43;08:00" />
-<meta itemprop="wordCount" content="456">
+<meta itemprop="wordCount" content="458">
 
 
 
@@ -356,18 +356,27 @@
 <p>select 实现逻辑:</p>
 
 <p>1.锁住所有 case 语句中的 channel<br />
-2.按照随机算法检测某个 channel 是否 ready
-- 如果可读: 则读取数据, 然后解锁所有 channel
-- 如果可写: 则写入数据, 然后解锁所有 channel
-- 如果没有 ready, 则解锁所有 channel</p>
+2.按照随机算法检测某个 channel 是否 ready</p>
 
-<p>3.如果当前没有 channel ready, 并且没有 default
-- 将当前协程加入所有 channel 的等待队列
-- 当前协程转入阻塞状态, 等待被唤醒</p>
+<ul>
+<li>如果可读: 则读取数据, 然后解锁所有 channel</li>
+<li>如果可写: 则写入数据, 然后解锁所有 channel</li>
+<li>如果所有 case 都没有 ready, 则解锁所有 channel, 然后返回 default</li>
+</ul>
 
-<p>4.唤醒后返回 channel 对应的 case
-- 读操作: 解锁所有 channel
-- 写操作: 解锁所有 channel</p>
+<p>3.如果当前没有 channel ready, 并且没有 default</p>
+
+<ul>
+<li>将当前协程加入所有 channel 的等待队列</li>
+<li>当前协程转入阻塞状态, 等待被唤醒</li>
+</ul>
+
+<p>4.唤醒后返回 channel 对应的 case</p>
+
+<ul>
+<li>读操作: 解锁所有 channel</li>
+<li>写操作: 解锁所有 channel</li>
+</ul>
 
 <p>对于读 channel 的 case, 一定要判断 channel 是读取成功, 因为如果channel关闭了也是可以读取的</p>
 

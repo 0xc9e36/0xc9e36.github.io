@@ -70,7 +70,7 @@
 
 <meta itemprop="datePublished" content="2019-11-14T22:29:56&#43;08:00" />
 <meta itemprop="dateModified" content="2019-11-14T22:29:56&#43;08:00" />
-<meta itemprop="wordCount" content="917">
+<meta itemprop="wordCount" content="915">
 
 
 
@@ -358,7 +358,7 @@
 }</pre></td></tr></table>
 </div>
 </div>
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE2a5a3dfa07d09dd09fc90cdfa0224d7e?ynotemdtimestamp=1573737318675" alt="image" /></p>
+<p><img src="http://i.caigoubao.cc/626957/lock01.png" alt="image" /></p>
 
 <p>state 从低位到高位分为四个部分:<br />
 1. Locked: 是否已经被锁定, 0 未锁定  1 已锁定<br />
@@ -372,12 +372,12 @@
 
 <p>直接修改 Locked 状态为 1</p>
 
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEb2d90d53fbe0c8296161176d8000affb?ynotemdtimestamp=1573741473732" alt="image" />加锁成功</p>
+<p><img src="http://i.caigoubao.cc/626957/lock12.png" alt="image" />加锁成功</p>
 
 <h3 id="加锁-被阻塞">加锁, 被阻塞</h3>
 
 <p>Waiter 数量 + 1
-<img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE90b8142c9ad4e65e42c2c06659989a4d?ynotemdtimestamp=1573741473732" alt="image" /></p>
+<img src="http://i.caigoubao.cc/626957/lockadd01.png" alt="image" /></p>
 
 <h2 id="解锁过程">解锁过程</h2>
 
@@ -385,15 +385,18 @@
 
 <p>直接修改 Locked 状态为 0</p>
 
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCE702672bb824e4d2a2c13ce169d6ffc84?ynotemdtimestamp=1573741473732" alt="image" /></p>
+<p><img src="http://i.caigoubao.cc/626957/unlock01.png" alt="image" /></p>
 
 <h3 id="解锁-有协程阻塞">解锁, 有协程阻塞</h3>
 
-<p>步骤:
-1. 释放锁
-2. 检查 waiter 数量, 如果大于 1, 释放信号量, 唤醒一个被阻塞的协程, 获取锁, 修改 Locked  状态</p>
+<p>步骤:</p>
 
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEa986f47139d509014b81299ac711996e?ynotemdtimestamp=1573741473732" alt="image" /></p>
+<ol>
+<li>释放锁</li>
+<li>检查 waiter 数量, 如果大于 1, 释放信号量, 唤醒一个被阻塞的协程, 获取锁, 修改 Locked  状态</li>
+</ol>
+
+<p><img src="http://i.caigoubao.cc/626957/unlock09.png" alt="image" /></p>
 
 <h2 id="自旋">自旋</h2>
 
@@ -504,7 +507,7 @@
 
 <p>读操作结束时, 会同时递减 readerCount 和 readerWait, 当 readerWait 为 0 时唤醒写操作</p>
 
-<p><img src="http://note.youdao.com/yws/public/resource/f9fee9d20491437693346a64aa3bffe5/WEBRESOURCEb711c63e9b39096f787d1929c22617a3?ynotemdtimestamp=1573741473732" alt="image" /></p>
+<p><img src="http://i.caigoubao.cc/626957/assets_-LQm0KQP9eyG1B9ntPkR_-LRjHlEJ5wGcMzSj8sUN_-LRjH4few0G3NNRG7Fx4_rwmutex-05-lock_not_starving.png" alt="image" /></p>
 
     </div>
 

@@ -366,7 +366,7 @@
 
 <p>关系图</p>
 
-<p><img src="http://i.caigoubao.cc/626957/ctx_01.png" alt="" /></p>
+<p><img src="http://i.caigoubao.cc/626957/ctx_01.png" alt="image" /></p>
 
 <h3 id="空-context">空 Context</h3>
 
@@ -553,13 +553,15 @@ func (c *cancelCtx) cancel(removeFromParent bool, err error) {
 }</pre></td></tr></table>
 </div>
 </div>
-<p>获取:</p>
-
 <ul>
 <li>新建一个 cancelCtx<br /></li>
 <li>逐级向上查找父节点, 找到第一个支持 cancel 的父节点, 则把 cancelCtx 加入该节点的 child 列表中</li>
+<li>如果所有父节点都不支持, 则新建一个协程, 等父节点结束, 再结束当前 context<br />
 
-<li><p>如果所有父节点都不支持, 则新建一个协程, 等父节点结束, 再结束当前 context</p>
+<br /></li>
+</ul>
+
+<p>获取:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre class="chroma"><span class="lnt">1
@@ -575,9 +577,7 @@ func (c *cancelCtx) cancel(removeFromParent bool, err error) {
 	return &amp;c, func() { c.cancel(true, Canceled) }
 }</pre></td></tr></table>
 </div>
-</div></li>
-</ul>
-
+</div>
 <p>用法举例:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">

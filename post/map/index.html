@@ -334,13 +334,13 @@
 <li>拉链法: 如果插入 key 发生冲突了, 数组的 value 会保存为一条链表, 新增的元素插入链表即可. 如果链表长度大于某个阈值, 某些语言会转化为平衡树结构, 提升查找性能</li>
 </ul>
 
-<p><img src="http://note.youdao.com/yws/public/resource/7fd4e0b5317830df71e42fb359e9007d/WEBRESOURCE7d6b0279ced768abbdda302bdc7cb264?ynotemdtimestamp=1573607381530" alt="image" /></p>
+<p><img src="http://i.caigoubao.cc/626957/map06%20(1).png" alt="image" /></p>
 
 <ul>
 <li>开放寻址法: 如果发生 hash 冲突, 将 key 写入数组中下一个不为空的位置, 查找元素时, 先定位到发生冲突的位置, 然后不断向后比较 key, 线性查找, 直到 key 匹配或者遇到空元素</li>
 </ul>
 
-<p><img src="http://note.youdao.com/yws/public/resource/7fd4e0b5317830df71e42fb359e9007d/WEBRESOURCE679b785477fb0c2c5431a897a34c8f79?ynotemdtimestamp=1573607381530" alt="image" /></p>
+<p><img src="http://i.caigoubao.cc/626957/map05.png" alt="image" /></p>
 
 <p>下面来探究一下 golang 中是如何实现 map 结构</p>
 
@@ -419,7 +419,7 @@
 <li>overflow指向下一个 bucket 的位置, 用于 hash 冲突</li>
 </ul>
 
-<p><img src="http://note.youdao.com/yws/public/resource/7fd4e0b5317830df71e42fb359e9007d/WEBRESOURCE62c3d5073687e52c5e49786d4bfd032e?ynotemdtimestamp=1573624619872" alt="image" /></p>
+<p><img src="http://i.caigoubao.cc/626957/map11.png" alt="image" /></p>
 
 <h2 id="查找">查找</h2>
 
@@ -466,7 +466,7 @@
 
 <p>不会增大容量, 重新组织 bucket, 提高使用率; 在极端情况下, 进行大量增删操作, key 集中在一小部分 bucket 中, overflow 数量增多, 但是负载不高, 无法进行增量扩容</p>
 
-<p><img src="http://note.youdao.com/yws/public/resource/7fd4e0b5317830df71e42fb359e9007d/WEBRESOURCEe808e2909bde928ed5ba9cfaec7ad70b?ynotemdtimestamp=1573649593790" alt="image" /></p>
+<p><img src="http://i.caigoubao.cc/626957/map13.png" alt="image" /></p>
 
     </div>
 
