@@ -44,7 +44,7 @@
       <pubDate>Sat, 16 Nov 2019 15:29:07 +0800</pubDate>
       
       <guid>http://www.golangsite.com/post/select/</guid>
-      <description>select select 语句中每一个 case 定义了一个数据结构, default 也是一种特殊的 case 1 2 3 4 5 6 7 type scase struct { c *hchan // chan elem unsafe.Pointer // 数据缓冲区 kind uint16 //数据类型 pc uintptr // race pc (for race detector / msan) releasetime</description>
+      <description>select select 语句中每一个 case 定义了一个数据结构, default 也是一种特殊的 case, 当所有 case 都没有 ready 时, 执行 default, 当有 case ready 时, 随机执行一条 1 2 3 4 5 6 7 type scase struct { c *hchan // chan elem unsafe.Pointer</description>
     </item>
     
     <item>
