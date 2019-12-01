@@ -70,7 +70,7 @@
 
 <meta itemprop="datePublished" content="2019-11-13T22:40:54&#43;08:00" />
 <meta itemprop="dateModified" content="2019-11-13T22:40:54&#43;08:00" />
-<meta itemprop="wordCount" content="336">
+<meta itemprop="wordCount" content="582">
 
 
 
@@ -315,6 +315,7 @@
 <li><a href="#3-延迟函数可能操作主函数的具名返回值">3.延迟函数可能操作主函数的具名返回值</a></li>
 </ul></li>
 <li><a href="#数据结构">数据结构</a></li>
+<li><a href="#注意事项">注意事项</a></li>
 </ul></li>
 </ul>
 </nav>
@@ -422,6 +423,116 @@
 </ul>
 
 <p><img src="http://i.caigoubao.cc/626957/defer_01.png" alt="image" /></p>
+
+<h2 id="注意事项">注意事项</h2>
+
+<ol>
+<li><p>defer 调用链上如果发生 panic ,  也会继续执行, 逐步向上传递， 终止进程</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma"><span class="kn">package</span> <span class="nx">main</span>
+
+<span class="kd">func</span> <span class="nf">test</span><span class="p">(</span><span class="nx">x</span> <span class="kt">int</span><span class="p">)</span> <span class="p">{</span>
+	<span class="k">defer</span> <span class="nb">println</span><span class="p">(</span><span class="s">&#34;a&#34;</span><span class="p">)</span>
+	<span class="k">defer</span> <span class="nb">println</span><span class="p">(</span><span class="s">&#34;b&#34;</span><span class="p">)</span>
+	<span class="k">defer</span> <span class="kd">func</span><span class="p">()</span> <span class="p">{</span>
+		<span class="nb">println</span><span class="p">(</span><span class="mi">100</span> <span class="o">/</span> <span class="nx">x</span><span class="p">)</span> <span class="c1">// div0 异常未被捕获，逐步往外传递，最终终⽌进程。
+</span><span class="c1"></span>	<span class="p">}()</span>
+	<span class="k">defer</span> <span class="nb">println</span><span class="p">(</span><span class="s">&#34;c&#34;</span><span class="p">)</span>
+<span class="p">}</span>
+<span class="kd">func</span> <span class="nf">main</span><span class="p">()</span> <span class="p">{</span>
+	<span class="nf">test</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="p">}</span></pre></td></tr></table>
+</div>
+</div></li>
+
+<li><p>延迟调⽤中引发的错误, 可被后续延迟调⽤捕获, 但仅最后⼀个错误可被捕获</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func test() {
+	defer func() {
+		fmt.Println(recover())
+	}()
+	defer func() {
+		panic(&#34;defer panic&#34;)
+	}()
+	panic(&#34;test panic&#34;)
+}
+func main() {
+	test()
+}</pre></td></tr></table>
+</div>
+</div></li>
+
+<li><p>捕获函数 recover 只有在延迟调⽤内直接调⽤才会终⽌错误，否则总是返回 nil</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">func test() {
+	defer recover() // ⽆效！
+	defer fmt.Println(recover()) // ⽆效！
+	defer func() {
+		func() {
+			println(&#34;defer inner&#34;)
+			recover() // ⽆效！
+		}()
+	}()
+	panic(&#34;test panic&#34;)
+}
+
+
+func main() {
+	test()
+}</pre></td></tr></table>
+</div>
+</div></li>
+</ol>
 
     </div>
 
