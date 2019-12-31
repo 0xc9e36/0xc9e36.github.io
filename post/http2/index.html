@@ -23,7 +23,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="wei.tan" />
-  <meta name="description" content="最近我在阅读 &amp;lt;&amp;gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一个 HTTP2 服务器 ? 升级到 HT" />
+  <meta name="description" content="最近我在阅读 [HTTP/2基础教程] 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一" />
 
 
 
@@ -59,25 +59,25 @@
 
 
 <meta property="og:title" content="HTTP2笔记" />
-<meta property="og:description" content="最近我在阅读 &lt;&gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一个 HTTP2 服务器 ? 升级到 HT" />
+<meta property="og:description" content="最近我在阅读 [HTTP/2基础教程] 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="http://www.golangsite.com/post/http2/" />
 <meta property="article:published_time" content="2019-12-31T23:45:25+08:00" />
 <meta property="article:modified_time" content="2019-12-31T23:45:25+08:00" />
 <meta itemprop="name" content="HTTP2笔记">
-<meta itemprop="description" content="最近我在阅读 &lt;&gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一个 HTTP2 服务器 ? 升级到 HT">
+<meta itemprop="description" content="最近我在阅读 [HTTP/2基础教程] 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一">
 
 
 <meta itemprop="datePublished" content="2019-12-31T23:45:25&#43;08:00" />
 <meta itemprop="dateModified" content="2019-12-31T23:45:25&#43;08:00" />
-<meta itemprop="wordCount" content="2529">
+<meta itemprop="wordCount" content="2538">
 
 
 
 <meta itemprop="keywords" content="" />
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="HTTP2笔记"/>
-<meta name="twitter:description" content="最近我在阅读 &lt;&gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一个 HTTP2 服务器 ? 升级到 HT"/>
+<meta name="twitter:description" content="最近我在阅读 [HTTP/2基础教程] 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -356,7 +356,7 @@
     <div class="post-content">
       
 
-<p>最近我在阅读 &lt;<HTTP/2基础教程>&gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。</p>
+<p>最近我在阅读 [HTTP/2基础教程] 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。</p>
 
 <h2 id="一-如何搭建一个-http2-服务器">一、如何搭建一个 HTTP2 服务器 ?</h2>
 
@@ -574,12 +574,15 @@ HTTP/1.1 101 Switching Protocols ➍
 
 <h3 id="流量控制">流量控制</h3>
 
-<p>WINDOW_UPDATE 类型帧用来指示 流量控制信息。每个帧告诉对方，发送方想要接收多少字节。
-&gt; 其实就是发送方的缓冲窗口大小， TCP 中不是也有一个滑动窗口吗？ 和这里的有什么不同呢？ TCP 的滑动窗口是控制整个连接的流量，粒度比较粗；而 HTTP2 的流量控制是针对每个 stream，粒度可以控制得更细。</p>
+<p>WINDOW_UPDATE 类型帧用来指示 流量控制信息。每个帧告诉对方，发送方想要接收多少字节。</p>
+
+<blockquote>
+<p>其实就是发送方的缓冲窗口大小， TCP 中不是也有一个滑动窗口吗？ 和这里的有什么不同呢？ TCP 的滑动窗口是控制整个连接的流量，粒度比较粗；而 HTTP2 的流量控制是针对每个 stream，粒度可以控制得更细。</p>
+</blockquote>
 
 <h3 id="优先级">优先级</h3>
 
-<p>通过 HEADERS 帧和 PRIORITY 帧，客户端可以 明确地和服务端沟通它需要什么，以及它需要这些资源的顺序。</p>
+<p>通过 HEADERS 帧和 PRIORITY 帧，客户端可以明确地和服务端沟通它需要什么，以及它需要这些资源的顺序。</p>
 
 <h3 id="服务端推送">服务端推送</h3>
 
@@ -590,8 +593,11 @@ HTTP/1.1 101 Switching Protocols ➍
 <h3 id="首部压缩">首部压缩</h3>
 
 <p>HPACK 表查找压缩方案，它利用霍夫曼编码获得接近 GZIP 的压缩率。<br />
-这里的首部压缩机制中每个连接都维护了自己的状态，这一点尤其值得注意，因为这在 h1 的协议层面中是不存在的。
-&gt; 优化 TCP 慢启动， 服务端和客户端都维护 header 索引表，遇到重复的就只发送索引。</p>
+这里的首部压缩机制中每个连接都维护了自己的状态，这一点尤其值得注意，因为这在 h1 的协议层面中是不存在的。</p>
+
+<blockquote>
+<p>优化 TCP 慢启动， 服务端和客户端都维护 header 索引表，遇到重复的就只发送索引。</p>
+</blockquote>
 
 <h2 id="faq">FAQ</h2>
 
@@ -709,7 +715,9 @@ HTTP/1.1 101 Switching Protocols ➍
 
   <span class="copyright-year">
     &copy;
-    2019
+    
+      2019 -
+    2020
     <span class="heart">
       
       <i class="iconfont">
