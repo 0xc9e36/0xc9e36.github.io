@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="zh-cn" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>HTTP2笔记 -  开发的套路</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="wei.tan" />
+  <meta name="description" content="最近我在阅读 &amp;lt;&amp;gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一个 HTTP2 服务器 ? 升级到 HT" />
+
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.59.0" />
+
+
+<link rel="canonical" href="http://www.golangsite.com/post/http2/" />
+
+
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.af20b78e95c84de86b00a0242a4a77bd2601700e1b250edf27537d957ac0041d.css" integrity="sha256-ryC3jpXITehrAKAkKkp3vSYBcA4bJQ7fJ1N9lXrABB0=" media="screen" crossorigin="anonymous">
+
+
+
+
+
+<meta property="og:title" content="HTTP2笔记" />
+<meta property="og:description" content="最近我在阅读 &lt;&gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一个 HTTP2 服务器 ? 升级到 HT" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="http://www.golangsite.com/post/http2/" />
+<meta property="article:published_time" content="2019-12-31T23:45:25+08:00" />
+<meta property="article:modified_time" content="2019-12-31T23:45:25+08:00" />
+<meta itemprop="name" content="HTTP2笔记">
+<meta itemprop="description" content="最近我在阅读 &lt;&gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一个 HTTP2 服务器 ? 升级到 HT">
+
+
+<meta itemprop="datePublished" content="2019-12-31T23:45:25&#43;08:00" />
+<meta itemprop="dateModified" content="2019-12-31T23:45:25&#43;08:00" />
+<meta itemprop="wordCount" content="2529">
+
+
+
+<meta itemprop="keywords" content="" />
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="HTTP2笔记"/>
+<meta name="twitter:description" content="最近我在阅读 &lt;&gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一个 HTTP2 服务器 ? 升级到 HT"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo"> 开发的套路</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.golangsite.com/">主页</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.golangsite.com/post/">文章</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.golangsite.com/categories/">分类</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.golangsite.com/about/"> 关于我</a>
+          
+        
+      </li>
+    
+
+    
+  </ul>
+</nav>
+
+
+  
+    
+
+
+
+
+
+
+  <link rel="stylesheet" href="/lib/photoswipe/photoswipe.min.css" />
+  <link rel="stylesheet" href="/lib/photoswipe/default-skin/default-skin.min.css" />
+
+
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+  
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+       开发的套路
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.golangsite.com/">主页</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.golangsite.com/post/">文章</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.golangsite.com/categories/">分类</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="http://www.golangsite.com/about/"> 关于我</a>
+          
+
+        
+
+      </li>
+    
+
+    
+    
+
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">HTTP2笔记</h1>
+      
+      <div class="post-meta">
+        <time datetime="2019-12-31" class="post-time">
+          2019-12-31
+        </time>
+        <div class="post-category">
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">文章目录</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+<ul>
+<li>
+<ul>
+<li><a href="#一-如何搭建一个-http2-服务器">一、如何搭建一个 HTTP2 服务器 ?</a></li>
+<li><a href="#二-web优化-黑魔法-的动机与方式">二、Web优化“黑魔法”的动机与方式</a>
+<ul>
+<li><a href="#影响整个-web-页面加载的关键性能指标">影响整个 Web 页面加载的关键性能指标</a></li>
+<li><a href="#http-1-1存在的问题">HTTP/1.1存在的问题</a>
+<ul>
+<li><a href="#队头阻塞">队头阻塞</a></li>
+<li><a href="#低效的-tcp-利用">低效的 TCP 利用</a></li>
+<li><a href="#臃肿的消息首部">臃肿的消息首部</a></li>
+<li><a href="#受限的优先级设置">受限的优先级设置</a></li>
+<li><a href="#第三方资源">第三方资源</a></li>
+</ul></li>
+<li><a href="#优化-web-性能最佳实践">优化 Web 性能最佳实践</a></li>
+</ul></li>
+<li><a href="#三-http2-迁移">三、HTTP2 迁移</a>
+<ul>
+<li><a href="#主流浏览器的支持情况">主流浏览器的支持情况</a></li>
+<li><a href="#需要支持-https">需要支持 HTTPS</a></li>
+<li><a href="#撤销针对http-1-1的-优化">撤销针对HTTP/1.1的“优化”</a></li>
+<li><a href="#第三方资源-1">第三方资源</a></li>
+<li><a href="#支持旧版本客户端">支持旧版本客户端</a></li>
+</ul></li>
+<li><a href="#四-http-2-协议">四、HTTP/2 协议</a>
+<ul>
+<li><a href="#连接">连接</a></li>
+<li><a href="#帧">帧</a></li>
+<li><a href="#流">流</a></li>
+<li><a href="#消息">消息</a></li>
+<li><a href="#流量控制">流量控制</a></li>
+<li><a href="#优先级">优先级</a></li>
+<li><a href="#服务端推送">服务端推送</a></li>
+<li><a href="#首部压缩">首部压缩</a></li>
+</ul></li>
+<li><a href="#faq">FAQ</a>
+<ul>
+<li><a href="#http-2-和-https-是什么关系">HTTP/2 和 HTTPS 是什么关系?</a></li>
+<li><a href="#从-http-1-1-升级到-http-2-有什么要注意的">从 HTTP/1.1 升级到 HTTP/2 有什么要注意的</a></li>
+<li><a href="#http-2-为什么不-叫-http-2-0">HTTP/2 为什么不 叫 HTTP/2.0</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      
+
+<p>最近我在阅读 &lt;<HTTP/2基础教程>&gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。</p>
+
+<h2 id="一-如何搭建一个-http2-服务器">一、如何搭建一个 HTTP2 服务器 ?</h2>
+
+<p>升级到 HTTP2，大概需要以下两步操作：</p>
+
+<ul>
+<li>下载并安装一张 TSL 证书。</li>
+<li>运行 Web  服务器，开启 HTTP2 协议支持。</li>
+</ul>
+
+<p>证书可以向 CA 机构花钱申请，经过权威认证；</p>
+
+<p>也可以创建自签名证书，配置到 Web 服务器， 不过浏览器访问时会发出警告⚠️。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">//使用 openssl 生成私钥
+openssl genrsa -out example.key 1024
+
+//使用私钥生成自签名的cert证书文件
+openssl req -new -key example.key -out example.csr
+
+//填完信息之后, 在当前目录下会生成私钥和证书文件
+//证书文件中包含公钥信息, 只要在 Web 服务器上配置了证书路径
+//ssl 握手时, 客户端就能拿到证书做校验
+//因为上面生成的证书是自签名, 没有经过 CA 认证, 所以浏览器会发出告警信息</pre></td></tr></table>
+</div>
+</div>
+<p>详细过程参考: <a href="https://www.ruanyifeng.com/blog/2018/02/nginx-docker.html">Nginx 容器教程</a></p>
+
+<h2 id="二-web优化-黑魔法-的动机与方式">二、Web优化“黑魔法”的动机与方式</h2>
+
+<h3 id="影响整个-web-页面加载的关键性能指标">影响整个 Web 页面加载的关键性能指标</h3>
+
+<ul>
+<li>延迟：数据从一个端点到另一个端点的时间。</li>
+<li>带宽</li>
+<li>DNS查询</li>
+<li>建立连接时间： TCP 握手。</li>
+<li>TLS</li>
+<li>首字节时间(TTFB)：从浏览器发起请求至收到其第一字节之间的耗时。</li>
+<li>内容下载时间</li>
+<li>开始渲染时间</li>
+<li>文档加载完成时间</li>
+</ul>
+
+<h3 id="http-1-1存在的问题">HTTP/1.1存在的问题</h3>
+
+<h4 id="队头阻塞">队头阻塞</h4>
+
+<p>HTTP/1.1 支持 <strong>pipelining</strong> 特性，允许一次发送一组请求，但是只能按照发送顺序依次接收响应。<br />
+如果某个响应出现问题，所有后续响应都会被阻塞。 浏览器为了防止这种问题，对于同一域名请求，可以开启多个 TCP 连接， 但每个连接上仍然会受队头阻塞影响。</p>
+
+<h4 id="低效的-tcp-利用">低效的 TCP 利用</h4>
+
+<p>TCP 会经历慢启动过程，可能经过数据往返传输后才能确定最佳拥塞窗口， 数据传输效率不高， 但是在解决性能问题时， 这几次往返的时间是非常宝贵的。</p>
+
+<p>粗略举个例子：
+假设从同一域名下请求的资源大小为 2M(文件、图片&hellip;)，TCP MSS 大小设置为 1460B， 操作系统拥塞窗口大小初始值为 4， 那么第一次发送的数据报文大小为 5840B， 然后等待确认回复，在理想情况下， 大概需要 9 次往返才能传输完成所有数据。除此之外，浏览器可能会开多个 TCP 连接请求数据，每个 TCP 连接都要进行拥塞调节。</p>
+
+<h4 id="臃肿的消息首部">臃肿的消息首部</h4>
+
+<p>首部无法压缩, 如果数据较大，光首部就要进行几次数据传输(拥塞调节)。</p>
+
+<h4 id="受限的优先级设置">受限的优先级设置</h4>
+
+<p>浏览器对同一个域名开启多个 socket 请求， 在优先级高的资源获取之后，处理过程中，浏览器不能发起新的请求， 优先级低的资源被阻塞。还可能会出现浏览器发现了一个优先级高的资源，但是需要在优先级低的资源之后排队的情况。</p>
+
+<h4 id="第三方资源">第三方资源</h4>
+
+<p>受限于第三方，即使是 HTTP2 也不能解决</p>
+
+<h3 id="优化-web-性能最佳实践">优化 Web 性能最佳实践</h3>
+
+<ul>
+<li><p>DNS查询优化</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt">1
+</span><span class="lnt">2
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">预解析
+&lt;link rel=&#34;dns-prefetch&#34; href=&#34;//ajax.googleapis.com&gt;</pre></td></tr></table>
+</div>
+</div></li>
+
+<li><p>优化 TCP 连接</p></li>
+
+<li><p>避免重定向</p></li>
+
+<li><p>客户端缓存</p></li>
+
+<li><p>网络边缘的缓存</p></li>
+
+<li><p>条件缓存</p></li>
+
+<li><p>压缩和代码极简化</p></li>
+
+<li><p>避免阻塞CSS/JS</p></li>
+
+<li><p>图片优化</p></li>
+</ul>
+
+<p>反模式：<br />
+HTTP2 只会对同一个域名开启一个 TCP 连接, 下面的做法可能不再适合。</p>
+
+<ul>
+<li>生成精灵图和资源合并/内联</li>
+<li>域名拆分</li>
+<li>禁用cookie的域名</li>
+</ul>
+
+<h2 id="三-http2-迁移">三、HTTP2 迁移</h2>
+
+<h3 id="主流浏览器的支持情况">主流浏览器的支持情况</h3>
+
+<p>大部分都支持</p>
+
+<h3 id="需要支持-https">需要支持 HTTPS</h3>
+
+<p>所有主流浏览器只能访问基于 TLS(即 HTTPS 请求)的 h2</p>
+
+<p>HTTP/2 的规范并不明确要求 TLS，
+也支持以明文通信，但主流浏览器都不支持基于非 TLS 的 h2。</p>
+
+<h3 id="撤销针对http-1-1的-优化">撤销针对HTTP/1.1的“优化”</h3>
+
+<p>要不要进行域名拆分 ?</p>
+
+<blockquote>
+<p>HTTP/2 的设计思路是尽量在单个 TCP/IP socket 上通信。它的做法是，开启一个 socket，并以最理想的拥塞速率运行，这样比起协调多个 socket 更可靠也更高效。尽 管如此，Akamai 的 Foundry 团队的研究表明，这种策略并不总是有效。取决于网站 的具体情况，多个 socket 可能优于单一 socket。它直接依赖于 TCP 拥塞控制的运作方 式，以及达到最优设置所需的时间。设置较大的初始拥塞窗口值可以缓解此问题;但 是如果这些较大的值无法由通信链路支持，那么也会产生问题。这个例子告诉我们， 要充分使用和优化 h2，需要不断地学习。对你的网站而言，就是要开发、测试、调 整，以及通过不断重复来找到最优设置。</p>
+</blockquote>
+
+<h3 id="第三方资源-1">第三方资源</h3>
+
+<h3 id="支持旧版本客户端">支持旧版本客户端</h3>
+
+<h2 id="四-http-2-协议">四、HTTP/2 协议</h2>
+
+<h3 id="连接">连接</h3>
+
+<p>协议发现:</p>
+
+<ul>
+<li><p>没有使用 HTTPS 情况： 客户端在请求首部携带 Upgrade 字段， 表明希望使用 HTTP2， 服务端响应 <code>101 Switching Protocols</code> 代表支持 HTTP2，这会增加一轮数据通信。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre class="chroma"><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span></pre></td>
+<td class="lntd">
+<pre class="chroma">Upgrade: HTTP/2.0 ➊
+HTTP2-Settings: (SETTINGS payload) ➋
+HTTP/1.1 200 OK ➌
+HTTP/1.1 101 Switching Protocols ➍
+
+
+➊ 发起带有HTTP 2.0 Upgrade 首部的HTTP 1.1 请求
+➋ HTTP/2.0 SETTINGS 净荷的Base64 URL 编码
+➌ 服务器拒绝升级，通过HTTP 1.1 返回响应
+➍ 服务器接受HTTP 2.0 升级，切换到新分帧</pre></td></tr></table>
+</div>
+</div></li>
+
+<li><p>使用了 HTTPS 情况： 客户端在 ClientHello 消息中设置 ALPN (Application-Layer Protocol Negotiation，应用层协议协商)扩展来表明期望使用 h2 协 议，服务器用同样的方式回复。如果使用这种方式，那么 h2 在创建 TLS 握手的过程中 完成协商，不需要多余的网络通信。</p></li>
+</ul>
+
+<h3 id="帧">帧</h3>
+
+<p>数据传输的最小单位, 帧的类型可以是 HEADERS，也可以是DATA&hellip; 它唯一属于一个 stream。</p>
+
+<p><img src="http://i.caigoubao.cc/626957/type.png" alt="" /></p>
+
+<p>帧结构:
+<img src="http://i.caigoubao.cc/626957/frame.png" alt="" /></p>
+
+<p>HTTP2 将 HTTP 消息分为互不依赖的帧，乱序发送，然后在另一端把它们组合起来，只需要一条 TCP 连接就能并行发送多个请求和响应，解决了队头阻塞问题，大大提高了效率。</p>
+
+<h3 id="流">流</h3>
+
+<p>流是连接中的一个虚拟信道，可以承载双向的消息；每个流都有一个唯一的整数标识符（1、2 &hellip; N)</p>
+
+<p>如果 HEADERS 太大，后续发送 CONTINUATION 类型的帧。</p>
+
+<h3 id="消息">消息</h3>
+
+<p>GET 请求:</p>
+
+<p><img src="http://i.caigoubao.cc/626957/stream.png" alt="" /></p>
+
+<p>POST 请求:
+<img src="http://i.caigoubao.cc/626957/stream2.png" alt="" /></p>
+
+<p>在未知数据长度时候，需要用到分块传输，但是在 HTTP/2 中，数据都是通过帧的形式，没有分块传输了。</p>
+
+<h3 id="流量控制">流量控制</h3>
+
+<p>WINDOW_UPDATE 类型帧用来指示 流量控制信息。每个帧告诉对方，发送方想要接收多少字节。
+&gt; 其实就是发送方的缓冲窗口大小， TCP 中不是也有一个滑动窗口吗？ 和这里的有什么不同呢？ TCP 的滑动窗口是控制整个连接的流量，粒度比较粗；而 HTTP2 的流量控制是针对每个 stream，粒度可以控制得更细。</p>
+
+<h3 id="优先级">优先级</h3>
+
+<p>通过 HEADERS 帧和 PRIORITY 帧，客户端可以 明确地和服务端沟通它需要什么，以及它需要这些资源的顺序。</p>
+
+<h3 id="服务端推送">服务端推送</h3>
+
+<p>使用 PUSH_PROMISE 帧, 服务端可以预先推送资源都客户端缓存，减小延迟。</p>
+
+<p><img src="http://i.caigoubao.cc/626957/push.png" alt="" /></p>
+
+<h3 id="首部压缩">首部压缩</h3>
+
+<p>HPACK 表查找压缩方案，它利用霍夫曼编码获得接近 GZIP 的压缩率。<br />
+这里的首部压缩机制中每个连接都维护了自己的状态，这一点尤其值得注意，因为这在 h1 的协议层面中是不存在的。
+&gt; 优化 TCP 慢启动， 服务端和客户端都维护 header 索引表，遇到重复的就只发送索引。</p>
+
+<h2 id="faq">FAQ</h2>
+
+<h3 id="http-2-和-https-是什么关系">HTTP/2 和 HTTPS 是什么关系?</h3>
+
+<p>HTTP/2 协议并没有规定一定要实现 HTTPS，但是目前主流的浏览器的实现都要必须要先支持 HTTPS。</p>
+
+<h3 id="从-http-1-1-升级到-http-2-有什么要注意的">从 HTTP/1.1 升级到 HTTP/2 有什么要注意的</h3>
+
+<h3 id="http-2-为什么不-叫-http-2-0">HTTP/2 为什么不 叫 HTTP/2.0</h3>
+
+<p>工作组决定删除次版本（“.0”），因为它在 HTTP/1.x 中引起了很多混乱。换句话说，HTTP 版本仅表示网络兼容性，而不表示功能集或“亮点”。</p>
+
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">文章作者</span>
+    <span class="item-content">wei.tan</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">上次更新</span>
+    <span class="item-content">
+      2019-12-31
+      
+    </span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">许可协议</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">CC BY-NC-ND 4.0</a></span>
+  </p>
+</div>
+
+
+    
+    
+
+    <footer class="post-footer">
+      
+
+      
+      <nav class="post-nav">
+        
+        
+          <a class="next" href="/post/timer/">
+            <span class="next-text nav-default"> 定时器实现原理</span>
+            <span class="prev-text nav-mobile">下一篇</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+    
+
+  
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="icon-links">
+  
+
+
+<a href="http://www.golangsite.com/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+   
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    2019
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        wei.tan
+        
+      </span></span>
+
+  
+  
+
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ=" crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    <script type="text/javascript" src="/js/load-photoswipe.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe.min.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe-ui-default.min.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

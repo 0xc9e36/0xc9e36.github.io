@@ -2,6 +2,41 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://www.golangsite.com/</loc>
+    <lastmod>2019-12-31T23:45:25+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.golangsite.com/categories/%E7%BD%91%E7%BB%9C/</loc>
+    <lastmod>2019-12-31T23:45:25+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.golangsite.com/categories/</loc>
+    <lastmod>2019-12-31T23:45:25+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.golangsite.com/post/http2/</loc>
+    <lastmod>2019-12-31T23:45:25+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>http://www.golangsite.com/post/</loc>
+    <lastmod>2019-12-31T23:45:25+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>http://www.golangsite.com/post/timer/</loc>
     <lastmod>2019-11-17T10:46:41+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -9,28 +44,7 @@
   </url>
   
   <url>
-    <loc>http://www.golangsite.com/</loc>
-    <lastmod>2019-11-17T10:46:41+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://www.golangsite.com/categories/</loc>
-    <lastmod>2019-11-17T10:46:41+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
     <loc>http://www.golangsite.com/categories/go/</loc>
-    <lastmod>2019-11-17T10:46:41+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>http://www.golangsite.com/post/</loc>
     <lastmod>2019-11-17T10:46:41+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>

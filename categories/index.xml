@@ -6,10 +6,19 @@
     <description>Recent content in Categories on  开发的套路</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 17 Nov 2019 10:46:41 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 31 Dec 2019 23:45:25 +0800</lastBuildDate>
     
 	<atom:link href="http://www.golangsite.com/categories/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title> 网络</title>
+      <link>http://www.golangsite.com/categories/%E7%BD%91%E7%BB%9C/</link>
+      <pubDate>Tue, 31 Dec 2019 23:45:25 +0800</pubDate>
+      
+      <guid>http://www.golangsite.com/categories/%E7%BD%91%E7%BB%9C/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>go</title>

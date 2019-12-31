@@ -61,7 +61,7 @@
 <meta property="og:type" content="website" />
 <meta property="og:url" content="http://www.golangsite.com/" />
 
-<meta property="og:updated_time" content="2019-11-17T10:46:41+08:00" />
+<meta property="og:updated_time" content="2019-12-31T23:45:25+08:00" />
 <meta itemprop="name" content=" 开发的套路">
 <meta itemprop="description" content="">
 
@@ -278,6 +278,40 @@
   <header class="post-header">
     <h1 class="post-title">
       
+      <a class="post-link" href="/post/lock/">sync.Mutex 实现原理</a>
+    </h1>
+    
+    <div class="post-meta">
+      <time datetime="2019-11-14" class="post-time">
+        2019-11-14
+      </time>
+      <div class="post-category">
+          <a href="http://www.golangsite.com/categories/go/"> go </a>
+          
+        </div>
+      
+      
+      
+    </div>
+  </header>
+  
+  <div class="post-content">
+    
+    <div class="post-summary">
+      数据结构 1 2 3 4 type Mutex struct { state int32 //锁的状态 sema uint32 //信号量 } state 从低位到高位分为四个部分: 1. Locked: 是否已经被锁定, 0 未锁定 1 已锁定 2. Woken: 是否有协程已经被
+    </div>
+    <div class="read-more">
+      <a href="/post/lock/" class="read-more-link">阅读全文</a>
+    </div>
+    
+  </div>
+</article>
+
+  
+    <article class="post bg-white">
+  <header class="post-header">
+    <h1 class="post-title">
+      
       <a class="post-link" href="/post/defer/">defer 实现原理</a>
     </h1>
     
@@ -336,40 +370,6 @@
     </div>
     <div class="read-more">
       <a href="/post/map/" class="read-more-link">阅读全文</a>
-    </div>
-    
-  </div>
-</article>
-
-  
-    <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title">
-      
-      <a class="post-link" href="/post/slice/">slice 实现原理</a>
-    </h1>
-    
-    <div class="post-meta">
-      <time datetime="2019-11-12" class="post-time">
-        2019-11-12
-      </time>
-      <div class="post-category">
-          <a href="http://www.golangsite.com/categories/go/"> go </a>
-          
-        </div>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      slice 底层使用数组实现, 但是比数组灵活, 可以动态扩容, 如果越界访问, 就会发生 panic 数据结构 1 2 3 4 5 type slice struct { array unsafe.Pointer //底层数组指针 len int //元素个数 cap int
-    </div>
-    <div class="read-more">
-      <a href="/post/slice/" class="read-more-link">阅读全文</a>
     </div>
     
   </div>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title> 开发的套路</title>
+  <title> 网络 ·  开发的套路</title>
   
 
 <meta name="renderer" content="webkit" />
@@ -32,8 +32,8 @@
 <meta name="generator" content="Hugo 0.59.0" />
 
 
-<link rel="canonical" href="http://www.golangsite.com/" />
-<link href="/index.xml" rel="alternate" type="application/rss+xml" title=" 开发的套路" />
+<link rel="canonical" href="http://www.golangsite.com/categories/%E7%BD%91%E7%BB%9C/" />
+<link href="/categories/%E7%BD%91%E7%BB%9C/index.xml" rel="alternate" type="application/rss+xml" title=" 开发的套路" />
 
 
 
@@ -56,17 +56,17 @@
 
 
 
-<meta property="og:title" content=" 开发的套路" />
+<meta property="og:title" content=" 网络" />
 <meta property="og:description" content="" />
 <meta property="og:type" content="website" />
-<meta property="og:url" content="http://www.golangsite.com/" />
+<meta property="og:url" content="http://www.golangsite.com/categories/%E7%BD%91%E7%BB%9C/" />
 
 <meta property="og:updated_time" content="2019-12-31T23:45:25+08:00" />
-<meta itemprop="name" content=" 开发的套路">
+<meta itemprop="name" content=" 网络">
 <meta itemprop="description" content="">
 
 <meta name="twitter:card" content="summary"/>
-<meta name="twitter:title" content=" 开发的套路"/>
+<meta name="twitter:title" content=" 网络"/>
 <meta name="twitter:description" content=""/>
 
 <!--[if lte IE 9]>
@@ -208,7 +208,7 @@
   <ul id="menu" class="menu">
     
     
-        <li class="menu-item active">
+        <li class="menu-item">
         
           
           
@@ -267,113 +267,27 @@
       <div class="content-wrapper">
         <div id="content" class="content container">
           
-<section id="posts" class="posts">
-  
+
+<section id="archive" class="archive">
   
     
-  
-  
-  
-    <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title">
-      
-      <a class="post-link" href="/post/http2/">HTTP2笔记</a>
-    </h1>
+      <div class="archive-title category">
+        <h2 class="archive-name">分类：  网络</h2>
+      </div>
     
-    <div class="post-meta">
-      <time datetime="2019-12-31" class="post-time">
+  
+
+  
+    <div class="archive-post">
+      <time datetime="2019-12-31" class="archive-post-time">
         2019-12-31
       </time>
-      <div class="post-category">
-          
-        </div>
-      
-      
-      
+      <span class="archive-post-title">
+        <a href="/post/http2/" class="archive-post-link">
+          HTTP2笔记
+        </a>
+      </span>
     </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      最近我在阅读 &lt;&gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一个 HTTP2 服务器 ? 升级到 HT
-    </div>
-    <div class="read-more">
-      <a href="/post/http2/" class="read-more-link">阅读全文</a>
-    </div>
-    
-  </div>
-</article>
-
-  
-    <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title">
-      
-      <a class="post-link" href="/post/timer/"> 定时器实现原理</a>
-    </h1>
-    
-    <div class="post-meta">
-      <time datetime="2019-11-17" class="post-time">
-        2019-11-17
-      </time>
-      <div class="post-category">
-          <a href="http://www.golangsite.com/categories/go/"> go </a>
-          
-        </div>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      timer 1 2 3 4 5 6 type Timer struct { //channel, 面向应用层 C &lt;-chan Time //系统定时器, 面向底层实现 r runtimeTimer } 实现原理: 一个进程中多个 timer 由同一个系统协程来管理, 系统协程把每一个
-    </div>
-    <div class="read-more">
-      <a href="/post/timer/" class="read-more-link">阅读全文</a>
-    </div>
-    
-  </div>
-</article>
-
-  
-    <article class="post bg-white">
-  <header class="post-header">
-    <h1 class="post-title">
-      
-      <a class="post-link" href="/post/context/">Context 实现原理</a>
-    </h1>
-    
-    <div class="post-meta">
-      <time datetime="2019-11-16" class="post-time">
-        2019-11-16
-      </time>
-      <div class="post-category">
-          <a href="http://www.golangsite.com/categories/go/"> go </a>
-          
-        </div>
-      
-      
-      
-    </div>
-  </header>
-  
-  <div class="post-content">
-    
-    <div class="post-summary">
-      接口定义 1 2 3 4 5 6 7 8 9 10 11 12 13 14 type Context interface { //返回 deadline 和是否设置了 deadline Deadline() (deadline time.Time, ok bool) //结束 channel Done() &lt;-chan struct{} //channel 被关闭的原因 Err() error //用在多个 context 直接传递消息 Value(key
-    </div>
-    <div class="read-more">
-      <a href="/post/context/" class="read-more-link">阅读全文</a>
-    </div>
-    
-  </div>
-</article>
-
   
 </section>
 
@@ -394,30 +308,6 @@
 
   
   
-
-  
-  
-  <nav class="pagination">
-    <ul>
-      
-      <li  class="active" >
-        <a href="/">1</a>
-      </li>
-      
-      <li >
-        <a href="/page/2/">2</a>
-      </li>
-      
-      <li >
-        <a href="/page/3/">3</a>
-      </li>
-      
-      <li >
-        <a href="/page/4/">4</a>
-      </li>
-      
-    </ul>
-  </nav>
 
   
   

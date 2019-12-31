@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title> 网络 on  开发的套路</title>
+    <link>http://www.golangsite.com/categories/%E7%BD%91%E7%BB%9C/</link>
+    <description>Recent content in  网络 on  开发的套路</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Tue, 31 Dec 2019 23:45:25 +0800</lastBuildDate>
+    
+	<atom:link href="http://www.golangsite.com/categories/%E7%BD%91%E7%BB%9C/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>HTTP2笔记</title>
+      <link>http://www.golangsite.com/post/http2/</link>
+      <pubDate>Tue, 31 Dec 2019 23:45:25 +0800</pubDate>
+      
+      <guid>http://www.golangsite.com/post/http2/</guid>
+      <description>最近我在阅读 &amp;lt;&amp;gt; 这本书， 算是对 HTTP2 有了一个初步的了解。 我把阅读过程中的一些重点内容和自己的思考，记录在这里。 一、如何搭建一个 HTTP2 服务器 ? 升级到 HT</description>
+    </item>
+    
+  </channel>
+</rss>
